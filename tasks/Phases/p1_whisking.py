@@ -12,7 +12,7 @@ from devices import *
 
 board = Breakout_1_2()
 speaker = Audio_board(board.port_4) # Instantiate audio board.
-button = Digital_input('X17', rising_event='button_press', pull='up') # pyboard usr button.
+button = Digital_input(pin=board.port_5.DIO_B, rising_event='button_press',debounce=100,pull="down") 
 pump = Digital_output(pin = board.BNC_2)
 wheel = Digital_output(pin = board.BNC_1)
 
@@ -49,7 +49,7 @@ def startup(event):
             #randomize the duration before experiment begins
             rand_offset = randint(0,v.delay_offset)/100 + 1
             set_timer('start_walking',v.delay * rand_offset)
-            set_timer('speaker_off',1000)
+            set_timer('speaker_off',800)
 
 
 def main_loop(event):
@@ -66,6 +66,7 @@ def main_loop(event):
 def all_states(event):
     if (event=='speaker_off'):
         speaker.off()
+    print(button.value())
 
 def run_end():
     #make sure all devices are off

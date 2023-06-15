@@ -1,22 +1,21 @@
 """
-phase 1 of the experiment
-mouse learns to whisk
+phase 2: mouse learns to react to triggers
+(divided into two parts 2.1 and 2.2)
 process:
-1. beep to notify start of trial
-2. wheel starts to move
-3. lab workers checks if the mouse is whisking
-4. if mouse is whisking lab worker presses the button to give water to the mouse
+    1. start brain recording
+    2. plat start beep
+    3. start wheel after randomized time
+    4. move trigger into whisking position after random time
+    5. move trigger out of whisking position
+    6. mouse receives water if responded to trigger
+        6.1 in part 2.1 recieve water right after lick
+        6.2 in part 2.2 recieve water only after trigger
+    7. stop recording
 """
-from pyControl.utility import *
-from devices import *
 
-board = Breakout_1_2()
-speaker = Audio_board(board.port_4) # Instantiate audio board.
-button = Digital_input(pin=board.port_5.DIO_B, rising_event='button_press',debounce=100,pull="down") 
-pump = Digital_output(pin = board.BNC_2)
-wheel = Digital_output(pin = board.BNC_1)
-sync_output = Rsync(pin=board.DAC_2, mean_IPI=1000,event_name="pulse") #needs to be a digital input on the intan system
-recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital input on the intan system
+from pyControl.utility import *
+from hardware_definitions.p2_def import *
+
 
 
 #public variables
@@ -33,7 +32,7 @@ v.pump_bool___=False
 
 states = ['startup','main_loop']
 initial_state = 'startup'
-events = ['speaker_off','start_walking','pump_off','button_press','pulse']
+events = ['speaker_off','start_walking','pump_off','pulse']
 
 def startup(event):  
     if (event=='start_walking'):
@@ -43,9 +42,8 @@ def startup(event):
 
     else:
         if(not v.finished_startup___):
+            
             #setup the trial
-            recording_trigger.on()
-            print("triggered recording")
             #turn on speaker and beep for start
             speaker.set_volume(v.volume)
             speaker.sine(v.frequency)
@@ -53,6 +51,7 @@ def startup(event):
             rand_offset = randint(0,v.delay_offset)/100 + 1
             set_timer('start_walking',v.delay * rand_offset)
             set_timer('speaker_off',800)
+            
 
 
 def main_loop(event):
@@ -69,16 +68,10 @@ def main_loop(event):
 def all_states(event):
     if (event=='speaker_off'):
         speaker.off()
-    if(not v.finished_startup___):
-        #setup the trial
-        recording_trigger.on()
-        print("triggered recording")
 
 def run_end():
     #make sure all devices are off
     speaker.off()
     pump.off()
     wheel.off()
-    recording_trigger.off()
-    print("stopped recording")
     print_variables()
