@@ -14,10 +14,11 @@ board = Breakout_1_2()
 speaker = Audio_board(board.port_4) # Instantiate audio board.
 button = Digital_input(pin=board.port_5.DIO_B, rising_event='button_press',debounce=100,pull="down") 
 pump = Digital_output(pin = board.BNC_2)
-wheel = Digital_output(pin = board.BNC_1)
-sync_output = Rsync(pin=board.DAC_2, mean_IPI=1000,event_name="pulse") #needs to be a digital input on the intan system
+wheel = Digital_output(pin = board.DAC_2)
+sync_output = Rsync(pin=board.BNC_1,event_name="pulse",pulse_dur=300) #needs to be a digital input on the intan system
 recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital input on the intan system
-
+port_exp = Port_expander(port = board.port_3)
+motor1 = Stepper_motor(port = port_exp.port_1)
 
 #public variables
 v.volume = 50 #speaker volume
@@ -31,54 +32,13 @@ v.pump_duration=300*ms #pump duration for button press
 v.finished_startup___ = False
 v.pump_bool___=False
 
-states = ['startup','main_loop']
-initial_state = 'startup'
+states = ['forward','backward']
+initial_state = 'forward'
 events = ['speaker_off','start_walking','pump_off','button_press','pulse']
 
-def startup(event):  
-    if (event=='start_walking'):
-        wheel.on()
-        v.finished_startup___=True
-        goto_state('main_loop')
-
-    else:
-        if(not v.finished_startup___):
-            #setup the trial
-            recording_trigger.on()
-            print("triggered recording")
-            #turn on speaker and beep for start
-            speaker.set_volume(v.volume)
-            speaker.sine(v.frequency)
-            #randomize the duration before experiment begins
-            rand_offset = randint(0,v.delay_offset)/100 + 1
-            set_timer('start_walking',v.delay * rand_offset)
-            set_timer('speaker_off',800)
-
-
-def main_loop(event):
-    if(event=='button_press'): #on event of button press and the pump is not active give water
-        if(not v.pump_bool___):
-            pump.on()
-            v.pump_bool___=True
-            set_timer('pump_off',v.pump_duration) #turn off pump after set duration
-    if(event=='pump_off'):
-        pump.off()
-        v.pump_bool___=False
-
-        
-def all_states(event):
-    if (event=='speaker_off'):
-        speaker.off()
-    if(not v.finished_startup___):
-        #setup the trial
-        recording_trigger.on()
-        print("triggered recording")
-
-def run_end():
-    #make sure all devices are off
-    speaker.off()
-    pump.off()
-    wheel.off()
-    recording_trigger.off()
-    print("stopped recording")
-    print_variables()
+def forward(event):  
+    motor1.forward(step_rate=100)
+    timed_goto_state("backward",1000)
+def backward(event):
+    motor1.backward(step_rate=100)
+    timed_goto_state("forward",1000)
