@@ -11,11 +11,11 @@ from pyControl.utility import *
 from devices import *
 
 board = Breakout_1_2()
+button = Digital_input(pin=board.port_1.DIO_B, rising_event='button_press',debounce=100,pull="down") 
+wheel = Digital_output(pin = board.port_1.DIO_A)
+port_exp = Port_expander(port = board.port_3)
 speaker = Audio_board(board.port_4) # Instantiate audio board.
-button = Digital_input(pin=board.port_5.DIO_B, rising_event='button_press',debounce=100,pull="down") 
 pump = Digital_output(pin = board.BNC_2)
-wheel = Digital_output(pin = board.BNC_1)
-
 
 
 #public variables
