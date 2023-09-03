@@ -1,13 +1,12 @@
 """
-phase 2: mouse learns to react to triggers
-(divided into two parts 2.1 and 2.2)
+phase 3: mouse learns to react to triggers
 process:
     1. start brain recording
     2. plat start beep
     3. start wheel after randomized time
     4. move trigger into whisking position after random time
+    5. lab worker pushes button to dispense water
     5. move trigger out of whisking position
-    6. mouse receives water if responded to trigger - controlled by button
     7. stop recording
 """
 
