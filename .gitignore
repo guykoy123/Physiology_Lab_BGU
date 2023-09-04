@@ -1,6 +1,6 @@
 /*
 !tasks/
-!hardware_definitions/
+#!hardware_definitions/
 !data/
 !.gitignore
 !readme.txt
