@@ -134,7 +134,7 @@ def startup(event):
                 v.correct_position=choice(v.positions) #pick random correct location
             else:
                 if v.correct_position not in v.positions: #if lab worker picked location out of list stop framework
-                    print("Error: location out of list")
+                    print("Error: position out of list")
                     stop_framework()
             print("correct position for this experiment: " + str(v.correct_position))
             recording_trigger.on()
