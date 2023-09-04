@@ -44,8 +44,11 @@ v.pump_duration=300*ms #pump duration for button press
 v.trigger_delay = 500*ms
 v.motor_speed = 1500
 v.motor_delay = 4000
+v.delay_in_position=3000 #amount of time trigger will stay in position before moving out
+v.area_for_trigger_to_move_out=[2000,3000] #values between them the trigger will move to wait outside of mouse feeling range
 
 #value of z and y to be close to mouse
+v.z_value=4800 
 v.x_value=2000 
 v.y_value=4000
 #x values around the mouse that will be randomly set
@@ -174,7 +177,7 @@ def main_loop(event):
         if v.motors_stationary___ and not v.motors_ready___:
             v.in_correct_position_flag___=False
             v.motors_stationary___=False
-            move = move_motor_into_position('y',randint(2000,3000))
+            move = move_motor_into_position('y',randint(v.area_for_trigger_to_move_out[0],v.area_for_trigger_to_move_out[1]))
             
             timed_goto_state("main_loop",move/v.motor_speed*second)
             v.motors_ready___=True
@@ -185,7 +188,7 @@ def main_loop(event):
 def update_motors(event):
     if event=='entry':
         v.motors_stationary___=True
-        set_timer('incorrect_position',3000) 
+        set_timer('incorrect_position',v.delay_in_position) 
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
         if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___:
             disarm_timer('incorrect_position')
