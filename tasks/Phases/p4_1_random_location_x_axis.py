@@ -216,7 +216,7 @@ def all_states(event):
     #trigger moves in when okay after a random time
     elif v.motors_stationary___ and v.motors_ready___ and v.finished_startup___:
         v.motors_ready___=False
-        v.motors_stationry=False
+        v.motors_stationary___=False
         set_timer('move_in',v.motor_delay*get_rand_offset())
         
 
