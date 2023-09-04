@@ -1,5 +1,5 @@
 """
-phase 4: mouse learns to react to triggers
+phase 4.1: mouse is tested on ability to distinguish between positions of triggers
 process:
     1. start brain recording
     2. pick correct location for experiment
