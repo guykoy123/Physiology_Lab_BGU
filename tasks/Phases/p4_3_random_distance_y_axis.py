@@ -163,7 +163,7 @@ def main_loop(event):
         v.motors_stationary___=False
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
         move = move_motor_into_position('z',v.z_value) 
-        y_position = choice(v.positions) #pick random position on x axis
+        y_position = choice(v.positions) #pick random position on y axis
         if y_position == v.correct_position:
             v.in_correct_position_flag___=True
             print("moved into correct position - " + str(y_position))
