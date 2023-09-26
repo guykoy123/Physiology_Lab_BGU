@@ -1,13 +1,14 @@
 """
-phase 3: mouse learns to react to triggers
+phase 2: mouse learns to react to triggers
 process:
     1. start brain recording
     2. plat start beep
     3. start wheel after randomized time
     4. move trigger into whisking position after random time
-    5. lab worker pushes button to dispense water
-    5. move trigger out of whisking position
-    7. stop recording
+    5. play sound to notify of licking window
+    6. give water
+    7. move trigger out of whisking position
+    8. end trial
 """
 
 from pyControl.utility import *
@@ -154,7 +155,7 @@ def main_loop(event):
             v.motors_ready___=True
         else:
             set_timer("move_out",50)
-            
+
 def all_states(event):
     if(event=='pump_on'):
         if(not v.pump_bool___):
