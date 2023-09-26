@@ -34,16 +34,20 @@ recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital inp
 
 #public variables
 v.volume = 50 #speaker volume
-v.frequency = 2000 #start tone frequency
-v.wheel_delay = 900 #delay from start of trial to start of wheel turn
+v.start_frequency = 2000 #start tone start_frequency
+v.water_frequency = 4000 #tone for start of water window
+v.wheel_delay = 600 #delay from start of trial to start of wheel turn
 v.delay_offset = 10 #percetage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_delay = 500*ms
+v.trigger_window = 2000*ms #how long the trigger stays in place
 v.motor_speed = 1500
 v.motor_delay = 4000
+
+v.time_between_trials=5000 
 #private variables
 v.finished_startup___ = False
 v.pump_bool___=False
+v.trial_counter___=0
 
 v.motor_z_pos___=0
 v.motor_y_pos___=0
@@ -51,10 +55,13 @@ v.motor_x_pos___=0
 
 v.motors_stationary___=True
 v.motors_ready___=True
-states = ['startup','main_loop','update_motors']
-initial_state = 'startup'
-events = ['speaker_off','start_walking','pump_off','button_press','pulse','move_in','move_out'
-          ,'lick_1','lick_1_off','stationary']
+
+states = ['start_trial','main_loop','update_motors']
+initial_state = 'start_trial'
+events = ['speaker_off','start_walking','pump_on','pump_off',
+          'button_press','pulse','move_in','move_out','moved_in'
+          ,'lick_1','lick_1_off',
+          'start_trial_event','end_trial','end_experiment']
 
 
 def return_home():
@@ -112,26 +119,21 @@ def move_motor_into_position(motor, position):
 def get_rand_offset():
     return randint(0,v.delay_offset)/100 + 1
 
-def startup(event):  
-    if (event=='start_walking'):
-        wheel.on()
+def start_trial(event):  
+    if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
+        print("trial #"+str(v.trial_counter___))
+        #setup the trial
+        #turn on speaker and beep for start
+        speaker.set_volume(v.volume)
+        speaker.sine(v.start_frequency)
+        #randomize the duration before experiment begins
+        rand_offset = randint(0,v.delay_offset)/100 + 1
+        set_timer('start_walking',v.wheel_delay * rand_offset)
+        set_timer('speaker_off',800)
         v.finished_startup___=True
-        
         goto_state('main_loop')
+        set_timer("move_in",300)
 
-    else:
-        if(not v.finished_startup___):
-            #setup the trial
-            recording_trigger.on()
-            print("triggered recording")
-            return_home()
-            #turn on speaker and beep for start
-            speaker.set_volume(v.volume)
-            speaker.sine(v.frequency)
-            #randomize the duration before experiment begins
-            set_timer('start_walking',v.wheel_delay * get_rand_offset())
-            set_timer('speaker_off',800)
-            # set_timer('move_in', v.motor_delay*rand_offset)
 
 
 
@@ -142,30 +144,25 @@ def main_loop(event):
         move = max(move,move_motor_into_position('y',4000))
         move = max(move,move_motor_into_position('x',2000))
         v.motors_ready___=False
-        timed_goto_state("update_motors",move/v.motor_speed*second)
+        set_timer("moved_in",move/v.motor_speed*second)
         
     elif event =="move_out":
         if v.motors_stationary___:
             v.motors_stationary___=False
             move = move_motor_into_position('y',randint(2000,3000))
-            timed_goto_state("update_motors",move/v.motor_speed*second)
+            set_timer("end_trial",move/v.motor_speed*second)
             v.motors_ready___=True
         else:
             set_timer("move_out",50)
-
-def update_motors(event):
-    if event=='entry':
-        v.motors_stationary___=True
-    elif event!='exit':
-        goto_state('main_loop')
-
+            
 def all_states(event):
-    if(event=='button_press'): #on event of button press and the pump is not active give water
+    if(event=='pump_on'):
         if(not v.pump_bool___):
+
             pump.on()
             v.pump_bool___=True
             set_timer('pump_off',v.pump_duration) #turn off pump after set duration
-            set_timer("move_out",50)
+
         
     if(event=='pump_off'):
         pump.off()
@@ -177,11 +174,36 @@ def all_states(event):
         #setup the trial
         recording_trigger.on()
         print("triggered recording")
-    elif v.motors_stationary___ and v.motors_ready___ and v.finished_startup___:
-        v.motors_ready___=False
-        v.motors_stationry=False
-        set_timer('move_in',v.motor_delay*get_rand_offset())
-        
+    if (event=='start_walking'):
+        wheel.on()
+        v.finished_startup___=True
+
+    elif event=='moved_in': #runs when trigger moved into place
+        v.motors_stationary___=True
+        speaker.sine(v.water_frequency)
+        set_timer('speaker_off',500)
+        set_timer('pump_on',800)
+        set_timer('move_out',v.trigger_window)
+        goto_state('main_loop')
+    
+    if (event=='end_trial'):
+        #make sure all devices are off
+        speaker.off()
+        pump.off()
+        wheel.off()
+
+        print_variables()
+        v.trial_counter___+=1
+
+        #reset flags
+        v.finished_startup___=False
+        v.motors_stationary___=True
+        v.motors_ready___=True
+
+        set_timer('start_trial_event',v.time_between_trials)
+        goto_state('start_trial')
+    if (event=='end_experiment'):
+        stop_framework()
 
 def run_end():
     #make sure all devices are off
