@@ -31,13 +31,14 @@ v.time_between_trials=5000
 v.finished_startup___ = False
 v.pump_bool___=False
 v.trial_counter___=0
+
 states = ['start_trial','main_loop']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event','end_trial','end_experiment']
 
 def start_trial(event):  
     if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
-        print("starting trial #"+str(v.trial_counter___))
+        print("trial #"+str(v.trial_counter___))
         #setup the trial
         #turn on speaker and beep for start
         speaker.set_volume(v.volume)
