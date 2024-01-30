@@ -1,13 +1,13 @@
 """
 phase 2: mouse learns to react to triggers
 process:
-    1. start brain recording
-    2. plat start beep
-    3. start wheel after randomized time
-    4. move trigger into whisking position after random time
-    5. play sound to notify of licking window
-    6. give water
-    7. move trigger out of whisking position
+    1. beep for start
+    2. after time start moving wheel
+    3. move trigger into place (make the position changeable variable)
+    4. move trigger out after set duration (also variable)
+    5. play beep to signal water (different frequency from the start)
+    6. give water after set duration from wheel start (also variable)
+    7.stop wheel
     8. end trial
 """
 
@@ -20,7 +20,7 @@ button = Digital_input(pin=board.port_1.DIO_B, rising_event='button_press',debou
 wheel = Digital_output(pin = board.port_1.DIO_A)
 port_exp = Port_expander(port = board.port_3)
 speaker = Audio_board(board.port_4) # Instantiate audio board.
-lickometer = Lickometer(port_exp.port_1)
+# lickometer = Lickometer(port_exp.port_1) #no need for lickometer in this experiment
 motor_z = Stepper_motor(port = board.port_2)
 motor_y = Stepper_motor(port = board.port_5)
 motor_x = Stepper_motor(port = board.port_6)
@@ -38,7 +38,7 @@ v.volume = 50 #speaker volume
 v.start_frequency = 2000 #start tone start_frequency
 v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 600 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percetage of offset from original value to randomize values
+v.delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
 v.trigger_window = 2000*ms #how long the trigger stays in place
 v.motor_speed = 1500
