@@ -5,7 +5,7 @@ process:
     2. play start beep
     3. start wheel after randomized time
     4. move trigger into whisking position after random time (location is randomly picked from two options)
-    5. if correct material and mouse licked - dispense water
+    5. if correct material dispense water
     6. move trigger out of whisking position
     7. end trial
 """
@@ -28,7 +28,7 @@ motor_x = Stepper_motor(port = board.port_6)
 pump = Digital_output(pin = board.BNC_2)
 
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
-recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital input on the intan system
+recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
 
 
@@ -41,7 +41,7 @@ v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 600 #delay from start of trial to start of wheel turn
 v.delay_offset = 10 #percetage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_window = 2000*ms #how long the trigger stays in place
+v.trigger_window = 3000*ms #how long the trigger stays in place
 v.motor_speed = 1500
 v.motor_delay = 4000
 v.area_for_trigger_to_move_out=[2000,3000] #values between them the trigger will move to wait outside of mouse feeling range
@@ -138,6 +138,7 @@ def get_rand_offset():
 
 def run_start():  
     recording_trigger.on()
+    print("starting recording!!!!!!!!!!!!!!!!!")
 
 
 def start_trial(event):  
@@ -228,7 +229,7 @@ def all_states(event):
         pump.off()
         wheel.off()
 
-        print_variables()
+        # print_variables()
         v.trial_counter___+=1
 
         #reset flags

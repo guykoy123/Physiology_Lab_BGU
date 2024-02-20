@@ -170,15 +170,15 @@ def main_loop(event):
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
         random_value = randint(0,100) #pick random material based on preset ratio
         if random_value<=v.percentage_of_reference_material:
-            y_position = v.positions[0] 
+            z_position = v.positions[0] 
             v.in_correct_position_flag___=True
-            print("moved into correct position - " + str(y_position))
+            print("moved into correct position - " + str(z_position))
             v.correct_position_counter___+=1
         else:
-            y_position=v.positions[1]
-            print("moved into incorrect position - " + str(y_position))
-        move = move_motor_into_position('y',y_position) 
-        move = max(move,move_motor_into_position('z',v.z_value))
+            z_position=v.positions[1]
+            print("moved into incorrect position - " + str(z_position))
+        move = move_motor_into_position('z',z_position) 
+        move = max(move,move_motor_into_position('y',v.y_value))
         move = max(move,move_motor_into_position('x',v.x_value))
         v.motors_ready___=False
         timed_goto_state("update_motors",move*0.9/v.motor_speed*second) #wait for motors to finish setting trigger in position
@@ -204,8 +204,8 @@ def update_motors(event):
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
         if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___:
             v.licked_this_window___=True
-            v.correct_lick_counter___+=1
             publish_event("pump_on")
+
     elif event=='exit_position': #if picked random position that's no the correct one move back to waiting
         set_timer('move_out',50)
         goto_state('main_loop')
@@ -221,6 +221,7 @@ def all_states(event):
     if(event=='pump_off'):
         pump.off()
         v.pump_bool___=False
+
 
     if (event=='speaker_off'):
         speaker.off()

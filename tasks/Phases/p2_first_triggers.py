@@ -40,7 +40,7 @@ v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 600 #delay from start of trial to start of wheel turn
 v.delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_window = 2000*ms #how long the trigger stays in place
+v.trigger_window = 3000*ms #how long the trigger stays in place
 v.motor_speed = 1500
 v.motor_delay = 4000
 

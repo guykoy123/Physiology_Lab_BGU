@@ -5,7 +5,7 @@ process:
     2. pick correct location for experiment
     3. play start beep
     4. start wheel after randomized time
-    5. move trigger into whisking position after random time (location is randomly picked from list)
+    5. move trigger into whisking position after random time 
     6. if correct location and mouse licked - dispense water
     7. move trigger out of whisking position
     8. stop recording
@@ -28,7 +28,7 @@ motor_x = Stepper_motor(port = board.port_6)
 pump = Digital_output(pin = board.BNC_2)
 
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
-recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital input on the intan system
+recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
 
 
@@ -36,27 +36,36 @@ recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital inp
 #public variables
 # v.custom_variables_dialog ="custom_variables_dialog"
 v.volume = 50 #speaker volume
-v.frequency = 2000 #start tone frequency
+v.start_frequency = 2000 #start tone start_frequency
+v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 900 #delay from start of trial to start of wheel turn
 v.delay_offset = 10 #percetage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_delay = 500*ms
+v.trigger_window = 3000*ms #how long the trigger stays in place
 v.motor_speed = 1500
 v.motor_delay = 4000
 v.delay_in_position=3000 #amount of time trigger will stay in position before moving out
 v.area_for_trigger_to_move_out=[2000,3000] #values between them the trigger will move to wait outside of mouse feeling range
 
+v.time_between_trials=5000 
+
+v.percentage_of_reference_material=50
 #value of z and y to be close to mouse
 v.z_value=4800 
 v.y_value=4000
 v.x_value=2000
 #x values around the mouse that will be randomly set
-v.positions = [1800,1900,2000,2150]
-v.correct_position=-1 #if -1 pick random from list. else means the lab worker preset a position
+v.positions = [2000,1800]
+v.correct_position=0
 
 #private variables
 v.finished_startup___ = False
 v.pump_bool___=False
+
+v.trial_counter___=0
+v.correct_lick_counter___=0
+v.correct_position_counter___=0
+v.licked_this_window___=False
 
 v.motor_z_pos___=0
 v.motor_y_pos___=0
@@ -64,10 +73,11 @@ v.motor_x_pos___=0
 v.in_correct_position_flag___=False
 v.motors_stationary___=True
 v.motors_ready___=True
-states = ['startup','main_loop','update_motors']
-initial_state = 'startup'
+states = ['start_trial','main_loop','update_motors']
+initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','pulse','move_in','move_out'
-          ,'lick_1','lick_1_off','incorrect_position']
+          ,'lick_1','lick_1_off','exit_position',
+          'start_trial_event','end_trial','end_experiment']
 
 
 def return_home():
@@ -125,28 +135,24 @@ def move_motor_into_position(motor, position):
 def get_rand_offset():
     return randint(0,v.delay_offset)/100 + 1
 
-def startup(event):  
-    if event== 'entry':
-        if(not v.finished_startup___):
-            #setup the trial
-            #pick random correct position for experiment
-            if v.correct_position==-1:
-                v.correct_position=choice(v.positions) #pick random correct location
-            else:
-                if v.correct_position not in v.positions: #if lab worker picked location out of list stop framework
-                    print("Error: position out of list")
-                    stop_framework()
-            print("correct position for this experiment: " + str(v.correct_position))
-            recording_trigger.on()
-            print("triggered recording")
-            return_home()
-            #turn on speaker and beep for start
-            speaker.set_volume(v.volume)
-            speaker.sine(v.frequency)
-            #randomize the duration before experiment begins
-            set_timer('start_walking',v.wheel_delay * get_rand_offset())
-            set_timer('speaker_off',800)
-            # set_timer('move_in', v.motor_delay*rand_offset)
+def run_start():  
+    recording_trigger.on()
+    print("starting recording!!!!!!!!!!!!!!!!!")
+
+def start_trial(event):  
+    if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
+        print("trial #"+str(v.trial_counter___))
+        #setup the trial
+        #turn on speaker and beep for start
+        speaker.set_volume(v.volume)
+        speaker.sine(v.start_frequency)
+        #randomize the duration before experiment begins
+        rand_offset = randint(0,v.delay_offset)/100 + 1
+        set_timer('start_walking',v.wheel_delay * rand_offset)
+        set_timer('speaker_off',800)
+        v.finished_startup___=True
+        goto_state('main_loop')
+        set_timer("move_in",300)
     if (event=='start_walking'):
         wheel.on()
         v.finished_startup___=True
@@ -162,15 +168,18 @@ def main_loop(event):
     if event=="move_in":   
         v.motors_stationary___=False
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
-        move = move_motor_into_position('z',v.z_value) 
-        move = max(move,move_motor_into_position('y',v.y_value))
-        x_position = choice(v.positions) #pick random position on x axis
-        if x_position == v.correct_position:
+        random_value = randint(0,100) #pick random material based on preset ratio
+        if random_value<=v.percentage_of_reference_material:
+            x_position = v.positions[0] 
             v.in_correct_position_flag___=True
             print("moved into correct position - " + str(x_position))
+            v.correct_position_counter___+=1
         else:
+            x_position=v.positions[1]
             print("moved into incorrect position - " + str(x_position))
-        move = max(move,move_motor_into_position('x',x_position))
+        move = move_motor_into_position('x',x_position) 
+        move = max(move,move_motor_into_position('z',v.z_value))
+        move = max(move,move_motor_into_position('y',v.y_value))
         v.motors_ready___=False
         timed_goto_state("update_motors",move*0.9/v.motor_speed*second) #wait for motors to finish setting trigger in position
         
@@ -180,7 +189,7 @@ def main_loop(event):
             v.motors_stationary___=False
             move = move_motor_into_position('y',randint(v.area_for_trigger_to_move_out[0],v.area_for_trigger_to_move_out[1]))
             
-            timed_goto_state("main_loop",move/v.motor_speed*second)
+            set_timer("end_trial",move/v.motor_speed*second)
             v.motors_ready___=True
             v.motors_stationary___=True
 
@@ -189,13 +198,15 @@ def main_loop(event):
 def update_motors(event):
     if event=='entry':
         v.motors_stationary___=True
-        set_timer('incorrect_position',v.delay_in_position) 
+        speaker.sine(v.water_frequency)
+        set_timer('speaker_off',500)
+        set_timer('exit_position',v.delay_in_position) 
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
-        if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___:
-            disarm_timer('incorrect_position')
+        if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___:
+            v.licked_this_window___=True
+            v.correct_lick_counter___+=1
             publish_event("pump_on")
-            goto_state('main_loop')
-    elif event=='incorrect_position': #if picked random position that's no the correct one move back to waiting
+    elif event=='exit_position': #if picked random position that's no the correct one move back to waiting
         set_timer('move_out',50)
         goto_state('main_loop')
 
@@ -210,17 +221,30 @@ def all_states(event):
     if(event=='pump_off'):
         pump.off()
         v.pump_bool___=False
-        goto_state('main_loop')
-        set_timer("move_out",50)
+
 
     if (event=='speaker_off'):
         speaker.off()
 
-    #trigger moves in when okay after a random time
-    elif v.motors_stationary___ and v.motors_ready___ and v.finished_startup___:
-        v.motors_ready___=False
-        v.motors_stationary___=False
-        set_timer('move_in',v.motor_delay*get_rand_offset())
+    if (event=='end_trial'):
+        #make sure all devices are off
+        speaker.off()
+        pump.off()
+        wheel.off()
+
+        # print_variables()
+        v.trial_counter___+=1
+
+        #reset flags
+        v.finished_startup___=False
+        v.motors_stationary___=True
+        v.motors_ready___=True
+        v.licked_this_window___=False
+
+        set_timer('start_trial_event',v.time_between_trials)
+        goto_state('start_trial')
+    if (event=='end_experiment'):
+        stop_framework()
         
 
 def run_end():
@@ -232,3 +256,4 @@ def run_end():
     recording_trigger.off()
     print("stopped recording")
     print_variables()
+    print("success rate: " +str(v.correct_lick_counter___/v.correct_position_counter___*100)+"%")
