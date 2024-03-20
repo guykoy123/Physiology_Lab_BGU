@@ -1,14 +1,15 @@
 """
 phase 4.1: mouse is tested on ability to distinguish between positions of triggers
 process:
-    1. start brain recording
-    2. pick correct location for experiment
-    3. play start beep
-    4. start wheel after randomized time
-    5. move trigger into whisking position after random time (location is randomly picked from list)
-    6. if correct location and mouse licked - dispense water
-    7. move trigger out of whisking position
-    8. stop recording
+    1. pick correct location for experiment 
+    2. start brain recording
+    3. lab worker triggers 'start_trial_event' to signify camera ha been turned on
+    4. play start beep
+    5. start wheel after randomized time
+    6. move trigger into whisking position after random time (location is randomly picked from list)
+    7. if correct location and mouse licked - dispense water
+    8. move trigger out of whisking position
+    9. stop recording
 """
 
 from pyControl.utility import *
@@ -140,7 +141,7 @@ def run_start():
     print("starting recording!!!!!!!!!!!!!!!!!")
 
 def start_trial(event):  
-    if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
+    if(not v.finished_startup___ and event=='start_trial_event'): #first trial will only start if worker has triggered the event manually, meaning the camera is recording
         print("trial #"+str(v.trial_counter___))
         #setup the trial
         #turn on speaker and beep for start
