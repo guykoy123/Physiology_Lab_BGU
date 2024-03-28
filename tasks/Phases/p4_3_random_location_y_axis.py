@@ -1,14 +1,14 @@
 """
-phase 4.1: mouse is tested on ability to distinguish between positions of triggers
+phase 4.1: mouse is tested on ability to distinguish between positions of stimuli
 process:
     1. pick correct location for experiment 
     2. start brain recording
     3. lab worker triggers 'start_trial_event' to signify camera ha been turned on
     4. play start beep
     5. start wheel after randomized time
-    6. move trigger into whisking position after random time (location is randomly picked from list)
+    6. move stimulus into whisking position after random time (location is randomly picked from list)
     7. if correct location and mouse licked - dispense water
-    8. move trigger out of whisking position
+    8. move stimulus out of whisking position
     9. stop recording
 """
 
@@ -35,39 +35,45 @@ recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a d
 
 
 #public variables
-# v.custom_variables_dialog ="custom_variables_dialog"
 v.volume = 50 #speaker volume
 v.start_frequency = 2000 #start tone start_frequency
 v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 900 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percetage of offset from original value to randomize values
+v.delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_window = 3000*ms #how long the trigger stays in place
+v.stimulus_window = 3000*ms #how long the stimulus stays in place
 v.motor_speed = 1500
-v.motor_delay = 4000
-v.delay_in_position=3000 #amount of time trigger will stay in position before moving out
-v.area_for_trigger_to_move_out=[2000,3000] #values between them the trigger will move to wait outside of mouse feeling range
+v.delay_in_position=3000 #amount of time stimulus will stay in position before moving out
+v.area_for_stimulus_to_move_out=[2000,3000] #values between them the stimulus will move to wait outside of mouse feeling range
 
 v.time_between_trials=5000 
 
+#percentage of the correct material shown throughout all trials(out of 100)
 v.percentage_of_reference_material=50
-#value of z and y to be close to mouse
-v.z_value=4800 
-v.y_value=4000
-v.x_value=2000
-#x values around the mouse that will be randomly set
-v.positions = [4800,4000]
-v.correct_position=0 #if -1 pick random from list. else means the lab worker preset a position
+#position in whisking area
+v.stimulus_x_value=2000
+v.stimulus_y_value=4000
+v.stimulus_z_value=4800
+
+#limits to move out of whisking area
+v.stimulus_x_outer_bounds=(800,1200)
+v.stimulus_y_outer_bounds=(2000,3000)
+v.stimulus_z_outer_bounds=(3000,4000)
+
+#y values around the mouse that will be randomly set
+#first position is the reference material (correct material)
+v.stimulus_positions = [4800,4000]
 
 #private variables
 v.finished_startup___ = False
-v.pump_bool___=False
+v.pump_bool___=False #pump on/off
 
 v.trial_counter___=0
-v.correct_lick_counter___=0
-v.correct_position_counter___=0
-v.licked_this_window___=False
+v.correct_lick_counter___=0 #in how many trials the mouse licked correctly
+v.correct_position_counter___=0 #in how many trials the stimulus was placed in the correct position
+v.licked_this_window___=False #flag if mouse has licked in allowed window of time for current trial
 
+#current stimulus position
 v.motor_z_pos___=0
 v.motor_y_pos___=0
 v.motor_x_pos___=0
@@ -138,7 +144,7 @@ def get_rand_offset():
 
 def run_start():  
     recording_trigger.on()
-    print("starting recording!!!!!!!!!!!!!!!!!")
+    print("starting recording")
 
 def start_trial(event):  
     if(not v.finished_startup___ and event=='start_trial_event'): #first trial will only start if worker has triggered the event manually, meaning the camera is recording
@@ -165,32 +171,39 @@ def start_trial(event):
 
 def main_loop(event):
 
-    #move trigger into position
+    #move stimulus into position
     if event=="move_in":   
         v.motors_stationary___=False
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
         random_value = randint(0,100) #pick random material based on preset ratio
         if random_value<=v.percentage_of_reference_material:
-            y_position = v.positions[0] 
+            y_position = v.stimulus_positions[0] 
             v.in_correct_position_flag___=True
             print("moved into correct position - " + str(y_position))
             v.correct_position_counter___+=1
         else:
-            y_position=v.positions[1]
+            y_position=v.stimulus_positions[1]
             print("moved into incorrect position - " + str(y_position))
-        move = move_motor_into_position('y',y_position) 
-        move = max(move,move_motor_into_position('z',v.z_value))
-        move = max(move,move_motor_into_position('x',v.x_value))
+        moving_time = move_motor_into_position('y',y_position) 
+        #calls the function that move along axis, the function returns the ETA
+        #takes the max of all axes ETA for the next event
+        moving_time = max(moving_time,move_motor_into_position('z',v.stimulus_z_value))
+        moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
+        
         v.motors_ready___=False
-        timed_goto_state("update_motors",move*0.9/v.motor_speed*second) #wait for motors to finish setting trigger in position
+        timed_goto_state("update_motors",moving_time*0.9/v.motor_speed*second) #wait for motors to finish setting stimulus in position
         
     elif event =="move_out": #move out of position to waiting spot
         if v.motors_stationary___ and not v.motors_ready___:
             v.in_correct_position_flag___=False
             v.motors_stationary___=False
-            move = move_motor_into_position('y',randint(v.area_for_trigger_to_move_out[0],v.area_for_trigger_to_move_out[1]))
+             #calls the function that move along axis, the function returns the ETA
+            #takes the max of all axes ETA for the next event
+            moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
+            moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
+            moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
             
-            set_timer("end_trial",move/v.motor_speed*second)
+            set_timer("end_trial",moving_time/v.motor_speed*second)
             v.motors_ready___=True
             v.motors_stationary___=True
 
@@ -256,4 +269,5 @@ def run_end():
     recording_trigger.off()
     print("stopped recording")
     print_variables()
-    print("success rate: " +str(v.correct_lick_counter___/v.correct_position_counter___*100)+"%")
+    if v.correct_position_counter___!=0:
+        print("success rate: " +str(v.correct_lick_counter___/v.correct_position_counter___*100)+"%")

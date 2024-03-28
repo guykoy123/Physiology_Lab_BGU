@@ -19,11 +19,11 @@ pump = Digital_output(pin = board.BNC_2)
 #public variables
 v.volume = 50 #speaker volume
 v.frequency = 2000 #start tone frequency
-v.delay = 900 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percetage of offset from original value to randomize values
+v.delay_to_start_wheel = 900 #delay from start of trial to start of wheel turn
+v.delay_offset = 10 #percentage of offset from original value to randomize values
 
 v.pump_duration=300*ms #pump duration for button press
-v.time_to_stop_wheel=500 #time after giving water before the wheel stops moving
+v.time_of_wheel_spinning=2000 #time after giving water before the wheel stops moving
 v.time_between_trials=5000 
 # v.pump_wait_period = 4500 #time between giving water
 
@@ -45,7 +45,8 @@ def start_trial(event):
         speaker.sine(v.frequency)
         #randomize the duration before experiment begins
         rand_offset = randint(0,v.delay_offset)/100 + 1
-        set_timer('start_walking',v.delay * rand_offset)
+        set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
+        
         set_timer('speaker_off',800)
         v.finished_startup___=True
         goto_state('main_loop')
@@ -61,7 +62,7 @@ def main_loop(event):
     if(event=='pump_off'): #stop pump and set timer for next pump on
         pump.off()
         v.pump_bool___=False
-        set_timer('end_trial',v.time_to_stop_wheel)
+        
         
 def all_states(event):
     if (event=='speaker_off'):
@@ -71,6 +72,7 @@ def all_states(event):
         wheel.on()
         v.finished_startup___=True
         set_timer('pump_on',1000)
+        set_timer('end_trial',v.time_of_wheel_spinning)
     if (event=='end_trial'):
         #make sure all devices are off
         speaker.off()

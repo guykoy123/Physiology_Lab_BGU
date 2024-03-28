@@ -1,10 +1,10 @@
 """
-phase 2: mouse learns to react to triggers
+phase 2: mouse learns to react to stimuli
 process:
     1. beep for start
     2. after time start moving wheel
-    3. move trigger into place (make the position changeable variable)
-    4. move trigger out after set duration (also variable)
+    3. move stimulus into place (make the position changeable variable)
+    4. move stimulus out after set duration (also variable)
     5. play beep to signal water (different frequency from the start)
     6. give water after set duration from wheel start (also variable)
     7.stop wheel
@@ -40,11 +40,22 @@ v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 600 #delay from start of trial to start of wheel turn
 v.delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_window = 3000*ms #how long the trigger stays in place
+v.stimulus_window = 3000*ms #how long the stimulus stays in place
 v.motor_speed = 1500
-v.motor_delay = 4000
+
 
 v.time_between_trials=5000 
+
+#position in whisking area
+v.stimulus_x_value=2000
+v.stimulus_y_value=4000
+v.stimulus_z_value=4800
+
+#limits to move out of whisking area
+v.stimulus_x_outer_bounds=(800,1200)
+v.stimulus_y_outer_bounds=(2000,3000)
+v.stimulus_z_outer_bounds=(3000,4000)
+
 #private variables
 v.finished_startup___ = False
 v.pump_bool___=False
@@ -63,8 +74,8 @@ events = ['speaker_off','start_walking','pump_on','pump_off',
           'button_press','pulse','move_in','move_out','moved_in'
           ,'lick_1','lick_1_off',
           'start_trial_event','end_trial','end_experiment']
-
-
+    
+    
 def return_home():
     if v.motor_z_pos___>0:
         motor_z.forward(v.motor_speed,v.motor_z_pos___)
@@ -141,17 +152,23 @@ def start_trial(event):
 def main_loop(event):
     if event=="move_in":   
         v.motors_stationary___=False
-        move = move_motor_into_position('z',4800) 
-        move = max(move,move_motor_into_position('y',4000))
-        move = max(move,move_motor_into_position('x',2000))
+        #calls the function that move along axis, the function returns the ETA
+        #takes the max of all axes ETA for the next event
+        moving_time = move_motor_into_position('z',v.stimulus_z_value) 
+        moving_time = max(moving_time,move_motor_into_position('y',v.stimulus_y_value))
+        moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
         v.motors_ready___=False
-        set_timer("moved_in",move/v.motor_speed*second)
+        set_timer("moved_in",moving_time/v.motor_speed*second)
         
     elif event =="move_out":
         if v.motors_stationary___:
             v.motors_stationary___=False
-            move = move_motor_into_position('y',randint(2000,3000))
-            set_timer("end_trial",move/v.motor_speed*second)
+            #calls the function that move along axis, the function returns the ETA
+            #takes the max of all axes ETA for the next event
+            moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
+            moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
+            moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
+            set_timer("end_trial",moving_time/v.motor_speed*second)
             v.motors_ready___=True
         else:
             set_timer("move_out",50)
@@ -179,12 +196,12 @@ def all_states(event):
         wheel.on()
         v.finished_startup___=True
 
-    elif event=='moved_in': #runs when trigger moved into place
+    elif event=='moved_in': #runs when stimulus moved into place
         v.motors_stationary___=True
         speaker.sine(v.water_frequency)
         set_timer('speaker_off',500)
         set_timer('pump_on',800)
-        set_timer('move_out',v.trigger_window)
+        set_timer('move_out',v.stimulus_window)
         goto_state('main_loop')
     
     if (event=='end_trial'):

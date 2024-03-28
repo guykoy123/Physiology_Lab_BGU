@@ -4,9 +4,9 @@ process:
     1. start brain recording
     2. play start beep
     3. start wheel after randomized time
-    4. move trigger into whisking position after random time (location is randomly picked from two options)
+    4. move stimulus into whisking position after random time (location is randomly picked from two options)
     5. if correct material dispense water
-    6. move trigger out of whisking position
+    6. move stimulus out of whisking position
     7. end trial
 """
 
@@ -39,23 +39,31 @@ v.volume = 50 #speaker volume
 v.start_frequency = 2000 #start tone start_frequency
 v.water_frequency = 4000 #tone for start of water window
 v.wheel_delay = 600 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percetage of offset from original value to randomize values
+v.delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=300*ms #pump duration for button press
-v.trigger_window = 3000*ms #how long the trigger stays in place
+v.stimulus_window = 3000*ms #how long the stimulus stays in place
 v.motor_speed = 1500
 v.motor_delay = 4000
-v.area_for_trigger_to_move_out=[2000,3000] #values between them the trigger will move to wait outside of mouse feeling range
+v.area_for_stimulus_to_move_out=[2000,3000] #values between them the stimulus will move to wait outside of mouse feeling range
 
 v.time_between_trials=5000 
 
 v.percentage_of_reference_material=50
-#value of z and y to be close to mouse
-v.z_value=4800 
-v.x_value=2000 
-v.y_value=4000
-#x values around the mouse that will be randomly set
+
+
+#position in whisking area
+v.stimulus_x_value=2000
+v.stimulus_y_value=4000
+v.stimulus_z_value=4800
+
+#limits to move out of whisking area
+v.stimulus_x_outer_bounds=(800,1200)
+v.stimulus_y_outer_bounds=(2000,3000)
+v.stimulus_z_outer_bounds=(3000,4000)
+
+#z values around the mouse that will be randomly set
 #first position is the reference material (correct material)
-v.positions = [4800,4000]
+v.material_positions = [4800,4000]
 v.correct_position___=0
 
 #private variables
@@ -158,32 +166,37 @@ def start_trial(event):
 
 def main_loop(event):
 
-    #move trigger into position
+    #move stimulus into position
     if event=="move_in":   
         v.motors_stationary___=False
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
         random_value = randint(0,100) #pick random material based on preset ratio
         if random_value<=v.percentage_of_reference_material:
-            z_position = v.positions[0] 
+            z_position = v.material_positions[0] 
             v.in_correct_position_flag___=True
             print("moved into correct position - " + str(z_position))
             v.correct_material_counter___+=1
         else:
-            z_position=v.positions[1]
+            z_position=v.material_positions[1]
             print("moved into incorrect position - " + str(z_position))
-        move = move_motor_into_position('z',z_position) 
-        move = max(move,move_motor_into_position('y',v.y_value))
-        move = max(move,move_motor_into_position('x',v.x_value))
+        moving_time = move_motor_into_position('z',z_position) 
+        #calls the function that move along axis, the function returns the ETA
+        #takes the max of all axes ETA for the next event
+        moving_time = max(moving_time,move_motor_into_position('y',v.stimulus_y_value))
+        moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
         v.motors_ready___=False
-        set_timer("moved_in",move*0.9/v.motor_speed*second) #wait for motors to finish setting trigger in position
+        set_timer("moved_in",moving_time*0.9/v.motor_speed*second) #wait for motors to finish setting stimulus in position
         
     elif event =="move_out": #move out of position to waiting spot
         if v.motors_stationary___ and not v.motors_ready___:
             v.in_correct_position_flag___=False
             v.motors_stationary___=False
-            move = move_motor_into_position('y',randint(v.area_for_trigger_to_move_out[0],v.area_for_trigger_to_move_out[1]))
-            
-            set_timer("end_trial",move/v.motor_speed*second)
+            #calls the function that move along axis, the function returns the ETA
+            #takes the max of all axes ETA for the next event
+            moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
+            moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
+            moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
+            set_timer("end_trial",moving_time/v.motor_speed*second)
             v.motors_ready___=True
             v.motors_stationary___=True
     
@@ -214,13 +227,13 @@ def all_states(event):
         wheel.on()
         v.finished_startup___=True
 
-    elif event=='moved_in': #runs when trigger moved into place
+    elif event=='moved_in': #runs when stimulus moved into place
         v.motors_stationary___=True
         speaker.sine(v.water_frequency)
         set_timer('speaker_off',500)
         if v.in_correct_position_flag___:
             set_timer('pump_on',1000)
-        set_timer('move_out',v.trigger_window)
+        set_timer('move_out',v.stimulus_window)
         goto_state('main_loop')
     
     if (event=='end_trial'):

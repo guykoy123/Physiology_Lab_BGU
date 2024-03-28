@@ -1,6 +1,6 @@
 """
 phase 0 of the experiment
-mouse gets used to the enviroment
+mouse gets used to the environment
 process:
 1. beep to notify start of trial
 2. give water every few seconds
