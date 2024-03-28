@@ -34,6 +34,7 @@ recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital inp
 
 
 #public variables
+v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
 v.volume = 50 #speaker volume
 v.start_frequency = 2000 #start tone start_frequency
 v.water_frequency = 4000 #tone for start of water window
@@ -217,9 +218,13 @@ def all_states(event):
         v.finished_startup___=False
         v.motors_stationary___=True
         v.motors_ready___=True
-
-        set_timer('start_trial_event',v.time_between_trials)
-        goto_state('start_trial')
+        #if amount of trials is reached, end task
+        #if amount of trials set to -1, will never stop automatically
+        if v.trial_counter___!=v.amount_of_trials:
+            set_timer('start_trial_event',v.time_between_trials)
+            goto_state('start_trial')
+        else:
+            stop_framework()
     if (event=='end_experiment'):
         stop_framework()
 

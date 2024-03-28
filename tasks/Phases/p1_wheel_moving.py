@@ -17,6 +17,7 @@ pump = Digital_output(pin = board.BNC_2)
 
 
 #public variables
+v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
 v.volume = 50 #speaker volume
 v.frequency = 2000 #start tone frequency
 v.delay_to_start_wheel = 900 #delay from start of trial to start of wheel turn
@@ -81,7 +82,13 @@ def all_states(event):
         print_variables()
         v.trial_counter___+=1
         v.finished_startup___=False
-        set_timer('start_trial_event',v.time_between_trials)
-        goto_state('start_trial')
+
+        #if amount of trials is reached, end task
+        #if amount of trials set to -1, will never stop automatically
+        if v.trial_counter___!=v.amount_of_trials:
+            set_timer('start_trial_event',v.time_between_trials)
+            goto_state('start_trial')
+        else:
+            stop_framework()
     if (event=='end_experiment'):
         stop_framework()
