@@ -33,8 +33,8 @@ events = ['speaker_off','pump_on','pump_off']
 def run_start():  
     #setup the trial
     #turn on speaker and beep for start
-    speaker.set_volume(v.volume)
-    speaker.sine(v.frequency)
+    speaker.set_volume(v.beep_volume)
+    speaker.sine(v.start_beep_frequency)
     set_timer('speaker_off',800)
     set_timer('pump_on',1000) #turn pump on for first time
 

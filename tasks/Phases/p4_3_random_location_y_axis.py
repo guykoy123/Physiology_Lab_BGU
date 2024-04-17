@@ -88,13 +88,13 @@ events = ['speaker_off','start_walking','pump_off','pump_on','pulse','move_in','
 
 def return_home():
     if v.motor_z_pos___>0:
-        motor_z.forward(v.motor_speed,v.motor_z_pos___)
+        motor_z.forward(v.stimulus_motor_speed,v.motor_z_pos___)
         v.motor_z_pos___=0
     if v.motor_y_pos___>0:
-        motor_y.forward(v.motor_speed,v.motor_y_pos___)
+        motor_y.forward(v.stimulus_motor_speed,v.motor_y_pos___)
         v.motor_y_pos___=0
     if v.motor_x_pos___>0:
-        motor_x.forward(v.motor_speed,v.motor_x_pos___)
+        motor_x.forward(v.stimulus_motor_speed,v.motor_x_pos___)
         v.motor_x_pos___=0
 
     print("motors homed")
@@ -113,33 +113,33 @@ def move_motor_into_position(motor, position):
     if motor=='x':
         move = position-v.motor_x_pos___
         if move>0 and move<=4800:
-            motor_x.backward(v.motor_speed,move)
+            motor_x.backward(v.stimulus_motor_speed,move)
             v.motor_x_pos___+=move
         elif move>-4800 and move<0:
-            motor_x.forward(v.motor_speed,move*(-1))
+            motor_x.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_x_pos___+=move
 
     elif motor=='y':
         move = position-v.motor_y_pos___
         if move>0 and move<=4800:
-            motor_y.backward(v.motor_speed,move)
+            motor_y.backward(v.stimulus_motor_speed,move)
             v.motor_y_pos___+=move
         elif move>=-4800 and move<0:
-            motor_y.forward(v.motor_speed,move*(-1))
+            motor_y.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_y_pos___+=move
 
     elif motor=='z':
         move = position-v.motor_z_pos___
         if move>0 and move<=4800:
-            motor_z.backward(v.motor_speed,move)
+            motor_z.backward(v.stimulus_motor_speed,move)
             v.motor_z_pos___+=move
         elif move>=-4800 and move<0:
-            motor_z.forward(v.motor_speed,move*(-1))
+            motor_z.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_z_pos___+=move
     return move
 
 def get_rand_offset():
-    return randint(0,v.delay_offset)/100 + 1
+    return randint(0,v.wheel_delay_offset)/100 + 1
 
 def run_start():  
     recording_trigger.on()
@@ -150,10 +150,10 @@ def start_trial(event):
         print("trial #"+str(v.trial_counter___))
         #setup the trial
         #turn on speaker and beep for start
-        speaker.set_volume(v.volume)
-        speaker.sine(v.start_frequency)
+        speaker.set_volume(v.beep_volume)
+        speaker.sine(v.start_beep_frequency)
         #randomize the duration before experiment begins
-        rand_offset = randint(0,v.delay_offset)/100 + 1
+        rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
         set_timer('start_walking',v.wheel_delay * rand_offset)
         set_timer('speaker_off',800)
         v.finished_startup___=True
@@ -190,7 +190,7 @@ def main_loop(event):
         moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
         
         v.motors_ready___=False
-        timed_goto_state("update_motors",moving_time*0.9/v.motor_speed*second) #wait for motors to finish setting stimulus in position
+        timed_goto_state("update_motors",moving_time*0.9/v.stimulus_motor_speed*second) #wait for motors to finish setting stimulus in position
         
     elif event =="move_out": #move out of position to waiting spot
         if v.motors_stationary___ and not v.motors_ready___:
@@ -202,7 +202,7 @@ def main_loop(event):
             moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
             moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
             
-            set_timer("end_trial",moving_time/v.motor_speed*second)
+            set_timer("end_trial",moving_time/v.stimulus_motor_speed*second)
             v.motors_ready___=True
             v.motors_stationary___=True
 
@@ -211,7 +211,7 @@ def main_loop(event):
 def update_motors(event):
     if event=='entry':
         v.motors_stationary___=True
-        speaker.sine(v.water_frequency)
+        speaker.sine(v.water_beep_frequency)
         set_timer('speaker_off',500)
         set_timer('exit_position',v.delay_in_position) 
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop

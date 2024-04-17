@@ -42,10 +42,10 @@ def start_trial(event):
         print("trial #"+str(v.trial_counter___))
         #setup the trial
         #turn on speaker and beep for start
-        speaker.set_volume(v.volume)
-        speaker.sine(v.frequency)
+        speaker.set_volume(v.beep_volume)
+        speaker.sine(v.start_beep_frequency)
         #randomize the duration before experiment begins
-        rand_offset = randint(0,v.delay_offset)/100 + 1
+        rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
         set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
         
         set_timer('speaker_off',800)
