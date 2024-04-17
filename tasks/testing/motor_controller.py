@@ -93,8 +93,8 @@ def main(event):
 
     if event =='return home':
         motor_z.forward(1500,4800)
-        motor_y.forward(1500,4000)
-        motor_x.forward(1500,2000)
+        motor_y.forward(1500,4800)
+        motor_x.forward(1500,4800)
         set_timer('wait',6000*ms)
 
             
