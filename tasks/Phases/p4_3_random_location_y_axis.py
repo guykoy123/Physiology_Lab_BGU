@@ -71,6 +71,8 @@ v.stimulus_positions = [4800,4000]
 
 #time to add to time_between_trials to punish mouse for wrong lick
 v.punishment_period=2000
+v.punishment_for_incorrect_timing=False
+v.punishment_for_incorrect_stimulus=False
 v.add_punishment___=False
 
 
@@ -236,19 +238,24 @@ def update_motors(event):
         speaker.sine(v.water_beep_frequency)
         set_timer('speaker_off',500)
         set_timer('exit_position',v.stimulus_time_window) 
-    elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
-        if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___:
-            v.licked_this_window___=True
-            v.correct_lick_counter___+=1
-            publish_event("pump_on")
-        #if mouse licks for incorrect stimulus set punishment flag to True
-        elif v.finished_startup___ and v.motors_stationary___ and not v.licked_this_window___:
-            v.add_punishment___=True
+
     elif event=='exit_position': #if picked random position that's no the correct one move back to waiting
         set_timer('move_out',50)
         goto_state('main_loop')
 
 def all_states(event):
+
+    if event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
+        if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___ and not v.motors_ready___:
+            v.licked_this_window___=True
+            v.correct_lick_counter___+=1
+            publish_event("pump_on")
+        #if mouse licks for incorrect stimulus set punishment flag to True
+        elif v.punishment_for_incorrect_stimulus and v.finished_startup___ and v.motors_stationary___ and not v.licked_this_window___ and not v.motors_ready___:
+            v.add_punishment___=True
+        elif v.punishment_for_incorrect_timing and not v.licked_this_window___:
+            v.add_punishment___=True
+            
     if(event=='pump_on'):
         if(not v.pump_bool___):
             pump.on()
