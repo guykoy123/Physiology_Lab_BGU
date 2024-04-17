@@ -47,8 +47,14 @@ v.stimulus_motor_speed = 1500
 
 v.time_between_trials=5000 
 
+#how many of total trials will be catch trials
+v.percentage_of_catch_trial=0.05
+
+#position on x axis to move the stimulus in a catch trials
+v.catch_trial_z_position = 0
+
 #percentage of the correct material shown throughout all trials(out of 100)
-v.percentage_of_reference_material=50
+v.percentage_of_reference_material=0.5  
 #position in whisking area
 v.stimulus_x_value=2000
 v.stimulus_y_value=4000
@@ -177,16 +183,21 @@ def main_loop(event):
     #move stimulus into position
     if event=="move_in":   
         v.motors_stationary___=False
-        #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
-        random_value = randint(0,100) #pick random material based on preset ratio
-        if random_value<=v.percentage_of_reference_material:
-            z_position = v.material_positions[0] 
-            v.in_correct_position_flag___=True
-            print("moved into correct position - " + str(z_position))
-            v.correct_position_counter___+=1
+        random_value=random()
+        if random_value<=v.percentage_of_catch_trial:   #regular trial or catch trial:
+            z_position = v.catch_trial_z_position
+            print("catch trial!!!")
         else:
-            z_position=v.material_positions[1]
-            print("moved into incorrect position - " + str(z_position))
+            #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
+            random_value = random() #pick random material based on preset ratio
+            if random_value<=v.percentage_of_reference_material:
+                z_position = v.material_positions[0] 
+                v.in_correct_position_flag___=True
+                print("moved into correct position - " + str(z_position))
+                v.correct_position_counter___+=1
+            else:
+                z_position=v.material_positions[1]
+                print("moved into incorrect position - " + str(z_position))
         moving_time = move_motor_into_position('z',z_position) 
         #calls the function that move along axis, the function returns the ETA
         #takes the max of all axes ETA for the next event

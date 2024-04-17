@@ -46,7 +46,7 @@ v.stimulus_motor_speed = 1500
 
 v.time_between_trials=5000 
 
-v.percentage_of_reference_material=50
+v.percentage_of_reference_material=0.5  
 
 
 #position in whisking area
@@ -168,7 +168,7 @@ def main_loop(event):
     if event=="move_in":   
         v.motors_stationary___=False
         #move each motor while saving the longest amount of moving one of the motors need to do to calculate how much time to wait
-        random_value = randint(0,100) #pick random material based on preset ratio
+        random_value = random() #pick random material based on preset ratio
         if random_value<=v.percentage_of_reference_material:
             z_position = v.material_positions[0] 
             v.in_correct_position_flag___=True
