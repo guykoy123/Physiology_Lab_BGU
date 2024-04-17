@@ -18,12 +18,12 @@ pump = Digital_output(pin = board.BNC_2)
 
 #public variables
 v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
-v.volume = 50 #speaker volume
-v.frequency = 2000 #start tone frequency
-v.delay_to_start_wheel = 900 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percentage of offset from original value to randomize values
+v.beep_volume = 50 #speaker volume
+v.start_beep_frequency = 2000 #start tone frequency
+v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
+v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
 
-v.pump_duration=300*ms #pump duration for button press
+v.pump_duration=75*ms #pump duration for button press
 v.time_of_wheel_spinning=2000 #time after giving water before the wheel stops moving
 v.time_between_trials=5000 
 # v.pump_wait_period = 4500 #time between giving water

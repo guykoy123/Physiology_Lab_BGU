@@ -15,11 +15,11 @@ pump = Digital_output(pin = board.BNC_2)
 
 
 #public variables
-v.volume = 50 #speaker volume
-v.frequency = 2000 #start tone frequency
+v.beep_volume = 50 #speaker volume
+v.start_beep_frequency = 2000 #start tone frequency
 
 v.pump_wait_period = 4500 #time between giving water
-v.pump_duration=300*ms #pump duration for button press
+v.pump_duration=75*ms #pump duration for button press
 
 
 #private variables

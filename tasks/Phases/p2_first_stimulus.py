@@ -35,14 +35,14 @@ recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital inp
 
 #public variables
 v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
-v.volume = 50 #speaker volume
-v.start_frequency = 2000 #start tone start_frequency
-v.water_frequency = 4000 #tone for start of water window
-v.wheel_delay = 600 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percentage of offset from original value to randomize values
-v.pump_duration=300*ms #pump duration for button press
-v.stimulus_window = 3000*ms #how long the stimulus stays in place
-v.motor_speed = 1500
+v.beep_volume = 50 #speaker volume
+v.start_beep_frequency = 2000 #start tone start_frequency
+v.water_beep_frequency = 4000 #tone for start of water window
+v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
+v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
+v.pump_duration=75*ms #pump duration for button press
+v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
+v.stimulus_motor_speed = 1500
 
 
 v.time_between_trials=5000 
@@ -55,7 +55,7 @@ v.stimulus_z_value=4800
 #limits to move out of whisking area
 v.stimulus_x_outer_bounds=(800,1200)
 v.stimulus_y_outer_bounds=(2000,3000)
-v.stimulus_z_outer_bounds=(3000,4000)
+v.stimulus_z_outer_bounds=(3000,3500)
 
 #private variables
 v.finished_startup___ = False

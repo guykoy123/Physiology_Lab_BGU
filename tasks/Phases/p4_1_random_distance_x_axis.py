@@ -36,16 +36,14 @@ recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a d
 
 #public variables
 v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
-v.volume = 50 #speaker volume
-v.start_frequency = 2000 #start tone start_frequency
-v.water_frequency = 4000 #tone for start of water window
-v.wheel_delay = 900 #delay from start of trial to start of wheel turn
-v.delay_offset = 10 #percetage of offset from original value to randomize values
-v.pump_duration=300*ms #pump duration for button press
-v.stimulus_window = 3000*ms #how long the stimulus stays in place
-v.motor_speed = 1500
-v.delay_in_position=3000 #amount of time stimulus will stay in position before moving out
-v.area_for_stimulus_to_move_out=[2000,3000] #values between them the stimulus will move to wait outside of mouse feeling range
+v.beep_volume = 50 #speaker volume
+v.start_beep_frequency = 2000 #start tone start_frequency
+v.water_beep_frequency = 4000 #tone for start of water window
+v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
+v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
+v.pump_duration=75*ms #pump duration for button press
+v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
+v.stimulus_motor_speed = 1500
 
 v.time_between_trials=5000 
 
@@ -59,7 +57,7 @@ v.stimulus_z_value=4800
 #limits to move out of whisking area
 v.stimulus_x_outer_bounds=(800,1200)
 v.stimulus_y_outer_bounds=(2000,3000)
-v.stimulus_z_outer_bounds=(3000,4000)
+v.stimulus_z_outer_bounds=(3000,3500)
 
 #x values around the mouse that will be randomly set
 #correct position is at index 0
@@ -215,7 +213,7 @@ def update_motors(event):
         v.motors_stationary___=True
         speaker.sine(v.water_frequency)
         set_timer('speaker_off',500)
-        set_timer('exit_position',v.delay_in_position) 
+        set_timer('exit_position',v.stimulus_time_window) 
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
         if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___:
             v.licked_this_window___=True
