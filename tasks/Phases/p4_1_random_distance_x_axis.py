@@ -63,6 +63,9 @@ v.stimulus_z_outer_bounds=(3000,3500)
 #correct position is at index 0
 v.distances_to_mouse = [2000,1800]
 
+#time to add to time_between_trials to punish mouse for wrong lick
+v.punishment_period=2000
+v.add_punishment___=False
 
 #private variables
 v.finished_startup___ = False
@@ -219,6 +222,9 @@ def update_motors(event):
             v.licked_this_window___=True
             v.correct_lick_counter___+=1
             publish_event("pump_on")
+        #if mouse licks for incorrect stimulus set punishment flag to True
+        elif v.finished_startup___ and v.motors_stationary___ and not v.licked_this_window___:
+            v.add_punishment___=True
     elif event=='exit_position': #if picked random position that's no the correct one move back to waiting
         set_timer('move_out',50)
         goto_state('main_loop')
@@ -255,8 +261,11 @@ def all_states(event):
         v.licked_this_window___=False
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
-        if v.trial_counter___!=v.amount_of_trials:
-            set_timer('start_trial_event',v.time_between_trials)
+        if v.trial_counter___!=v.amount_of_trials: #if punishment flag is True, add punishment period to time between trials
+            set_timer('start_trial_event',v.time_between_trials + v.add_punishment___*v.punishment_period)
+            if v.add_punishment___:
+                print("adding punishment period")
+            v.add_punishment___=False
             goto_state('start_trial')
         else:
             stop_framework()

@@ -63,6 +63,9 @@ v.stimulus_z_outer_bounds=(3000,3500)
 #first position is the reference material (correct material)
 v.material_positions = [4800,4000]
 
+#time to add to time_between_trials to punish mouse for wrong lick
+v.punishment_period=2000
+v.add_punishment___=False
 
 #private variables
 v.finished_startup___ = False
@@ -155,7 +158,7 @@ def start_trial(event):
         speaker.sine(v.start_beep_frequency)
         #randomize the duration before experiment begins
         rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
-        set_timer('start_walking',v.wheel_delay * rand_offset)
+        set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
         set_timer('speaker_off',800)
         v.finished_startup___=True
         goto_state('main_loop')
@@ -212,12 +215,14 @@ def update_motors(event):
         v.motors_stationary___=True
         speaker.sine(v.water_beep_frequency)
         set_timer('speaker_off',500)
-        set_timer('exit_position',v.delay_in_position) 
+        set_timer('exit_position',v.stimulus_time_window) 
     elif event=="lick_1": #if mouse licks correctly disarm the incorrect position event, turn pump on and go back to main loop
         if v.finished_startup___ and v.motors_stationary___ and v.in_correct_position_flag___ and not v.licked_this_window___:
             v.licked_this_window___=True
             publish_event("pump_on")
-
+        #if mouse licks for incorrect stimulus set punishment flag to True
+        elif v.finished_startup___ and v.motors_stationary___ and not v.licked_this_window___:
+            v.add_punishment___=True
     elif event=='exit_position': #if picked random position that's no the correct one move back to waiting
         set_timer('move_out',50)
         goto_state('main_loop')
@@ -256,7 +261,10 @@ def all_states(event):
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
         if v.trial_counter___!=v.amount_of_trials:
-            set_timer('start_trial_event',v.time_between_trials)
+            set_timer('start_trial_event',v.time_between_trials + v.add_punishment___*v.punishment_period)
+            if v.add_punishment___:
+                print("adding punishment period")
+            v.add_punishment___=False
             goto_state('start_trial')
         else:
             stop_framework()
