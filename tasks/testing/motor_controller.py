@@ -95,6 +95,9 @@ def main(event):
         motor_z.forward(1500,4800)
         motor_y.forward(1500,4800)
         motor_x.forward(1500,4800)
+        v.motor_z_position=0
+        v.motor_y_position=0
+        v.motor_x_position=0
         set_timer('wait',6000*ms)
 
             
