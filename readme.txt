@@ -1,3 +1,15 @@
+
+Electrophysiology lab at BGU using mice to study the brains ability and process of decision making based on mechanoreceptor.
+
+In the experiment mouse will be shown stimuli in different positions preset before the start. will receive water for licking at correct one, punishment for incorrect one.
+While their brain is being recorded and they are filmed with high speed camera.
+using the pyControl system for running and managing the experiments
+
+
+
+
+
+
 pyControl is a system of software and hardware for controlling behavioural experiments based around the Micropython microcontroller.
 
 For more information please see the Docs: http://pycontrol.readthedocs.io/
