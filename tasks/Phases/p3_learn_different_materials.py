@@ -156,7 +156,7 @@ def start_trial(event):
         speaker.sine(v.start_beep_frequency)
         #randomize the duration before experiment begins
         rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
-        set_timer('start_walking',v.wheel_delay * rand_offset)
+        set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
         set_timer('speaker_off',800)
         v.finished_startup___=True
         goto_state('main_loop')
