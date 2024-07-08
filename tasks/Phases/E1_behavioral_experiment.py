@@ -1,32 +1,6 @@
 """
 Can be used for the experiment but also for teaching the mouse the different stimuli
 In the experiment mouse will be shown stimuli in different positions preset before the start. will receive water for licking at correct one, punishment for incorrect one.
-
-important variables:
-
-- correct stimulus position - (x,y,z)
-- catch trial stimulus position - (x,y,z)
-- catch trial probability
-- offset from correct position lists, per axis, that hold position offset of additional positions
-- position probability list - holds probability to choose each of the possible position (including correct position)
-
-
-1. check validity of preset positions and probabilities for the experiment
-2. start brain recording
-3. lab worker confirms camera has been turned on
-4. begin trials (until trial counter reaches preset amount, or indefinitely)
-   1. start trial - beep for start
-   2. move wheel after some time
-   3. pick between regular trial or catch trial (based on probability variable)
-      1. catch trial - move stimulus into catch trial position (preset before experiment start)
-      2. regular trial - pick position from possible position list based on probability list corresponding to each position. Then move the stimulus into chosen position
-   4. beep for licking period
-      1. lick on correct stimulus - give water
-      2. lick on incorrect stimulus - don't give water, add punishment period to inter trial interval
-   5. move trigger out
-   6. stop wheel
-   7. stop trial
-   8. start inter trial interval, when it ends go back to stage 'a' - start trial
 """
 
 from pyControl.utility import *
@@ -42,6 +16,7 @@ lickometer = Lickometer(port_exp.port_1,debounce=20)
 motor_z = Stepper_motor(port = board.port_2)
 motor_y = Stepper_motor(port = board.port_5)
 motor_x = Stepper_motor(port = board.port_6)
+laser=Digital_output(pin = port_exp.port_2.DIO_B)
 
 pump = Digital_output(pin = board.BNC_2)
 
@@ -62,7 +37,15 @@ v.pump_duration=75*ms #pump duration for button press
 v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
 v.stimulus_motor_speed = 1500
 
-v.time_between_trials=5000 
+#laser variables
+v.laser_on=False #laser switch
+v.laser_delay_from_start=200 #delay from the start of the trial to start pulsing the laser
+v.laser_number_of_pulses=5
+v.laser_pulse_duration=5
+v.laser_inter_pulse_interval=10
+v.laser_pulse_counter___=0
+
+v.inter_trial_interval=5000 
 
 #"correct" position in whisking area
 v.correct_stimulus_x_value=2000
@@ -92,7 +75,7 @@ v.stimulus_y_outer_bounds=(2000,3000)
 v.stimulus_z_outer_bounds=(3000,3500)
 
 
-#time to add to time_between_trials to punish mouse for wrong lick
+#time to add to inter_trial_interval to punish mouse for wrong lick
 v.punishment_period=2000
 v.punishment_for_incorrect_timing=False
 v.punishment_for_incorrect_stimulus=False
@@ -104,7 +87,7 @@ v.pump_bool___=False #pump on/off
 
 v.trial_counter___=0
 v.correct_lick_counter___=0 #in how many trials the mouse licked correctly
-v.correct_position_counter___=0 #in how many trials the stimulus was placed in the correct position
+v.correct_stimulus_counter___=0 #in how many trials the stimulus was placed in the correct position
 v.licked_this_window___=False #flag if mouse has licked in allowed window of time for current trial
 
 #current stimulus position
@@ -117,7 +100,7 @@ v.motors_ready___=True
 states = ['start_trial','main_loop','update_motors']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','pulse','move_in','move_out'
-          ,'lick_1','lick_1_off','exit_position',
+          ,'lick_1','lick_1_off','exit_position','laser_on','laser_off',
           'start_trial_event','end_trial','end_experiment']
 
 
@@ -176,179 +159,18 @@ def move_motor_into_position(motor, position):
 def get_rand_offset():
     return randint(0,v.wheel_delay_offset)/100 + 1
 
-def variable_validation():
-    """
-    runs validations on all public variables of the task
-    """
-    valid_flag=True
-
-    if not isinstance(v.number_of_trials,int) or v.number_of_trials<-1:
-        valid_flag=False
-        print("number_of_trials has to be an integer larger or equal to -1")
-
-    if not isinstance(v.beep_volume,int) or v.beep_volume>100 or v.beep_volume<1:
-        valid_flag=False
-        print("beep_volume has to be an integer between 1 and 127")
-
-    if not isinstance(v.start_beep_frequency,int) or v.start_beep_frequency>6000 or v.start_beep_frequency<1:
-        valid_flag=False
-        print("start_beep_frequency has to be an integer between 1 and 6000 [Hz]")
-
-    if not isinstance(v.water_beep_frequency,int) or v.water_beep_frequency>6000 or v.water_beep_frequency<1:
-        valid_flag=False
-        print("water_beep_frequency has to be an integer between 1 and 6000 [Hz]")
-
-    if not isinstance(v.delay_to_start_wheel ,int) or v.delay_to_start_wheel <0:
-        valid_flag=False
-        print("delay_to_start wheel has to be an integer larger or equal to 0")
-
-    if not isinstance(v.wheel_delay_offset ,int) or v.wheel_delay_offset <0:
-        valid_flag=False
-        print("wheel_delay_offset has to be an integer larger or equal to 0")
-
-    if not isinstance(v.pump_duration ,int) or v.pump_duration <0:
-        valid_flag=False
-        print("wheel_delay_offset has to be an integer larger or equal to 0")
-
-    if not isinstance(v.stimulus_time_window ,int) or v.stimulus_time_window <0:
-        valid_flag=False
-        print("stimulus_time_window has to be an integer larger or equal to 0")
-
-    if not isinstance(v.stimulus_motor_speed ,int) or v.stimulus_motor_speed >1500 or v.stimulus_motor_speed <1:
-        valid_flag=False
-        print("stimulus_motor_speed has to be an integer between 1 and 1500")
-    
-    if not isinstance(v.time_between_trials ,int) or v.time_between_trials <0:
-        valid_flag=False
-        print("time_between_trials has to be an integer larger or equal to 0")
-
-    if not isinstance(v.correct_stimulus_x_value, int) or v.correct_stimulus_x_value>4800 or v.correct_stimulus_x_value<0:
-        valid_flag=False
-        print("correct_stimulus_x_value has to be an integer between 0 and 4800")
-    
-    if not isinstance(v.correct_stimulus_y_value, int) or v.correct_stimulus_y_value>4800 or v.correct_stimulus_y_value<0:
-        valid_flag=False
-        print("correct_stimulus_y_value has to be an integer between 0 and 4800")
-        
-    if not isinstance(v.correct_stimulus_z_value, int) or v.correct_stimulus_z_value>4800 or v.correct_stimulus_z_value<0:
-        valid_flag=False
-        print("correct_stimulus_z_value has to be an integer between 0 and 4800")
-
-
-    #check stimulus offset lists
-    catch_trial_position_flag=False #check that catch trial position does not align with other positions
-    if len( v.x_stimulus_offset)== len( v.y_stimulus_offset) and len( v.y_stimulus_offset)==len( v.z_stimulus_offset):
-        for  i in range(v.x_stimulus_offset):
-            #check that all offset values are integers and when summing with correct value it stays within allowed range
-            x=v.x_stimulus_offset[i] + v.correct_stimulus_x_value
-            if x<0 or x>4800 or  isinstance(v.x_stimulus_offset,int):
-                valid_flag=False
-                break
-            elif x==v.catch_trial_x_position:
-                catch_trial_position_flag=True
-            y=v.y_stimulus_offset[i] + v.correct_stimulus_y_value
-            if y<0 or y>4800 or  isinstance(v.y_stimulus_offset,int):
-                valid_flag=False
-                break
-            elif y==v.catch_trial_y_position:
-                catch_trial_position_flag=True
-            z=v.z_stimulus_offset[i] + v.correct_stimulus_z_value
-            if z<0 or z>4800 or  isinstance(v.z_stimulus_offset,int):
-                valid_flag=False
-                break
-            elif z==v.catch_trial_z_position:
-                catch_trial_position_flag=True
-        if not valid_flag:
-            print("x/y/z_stimulus_offset + correct_stimulus_x/y/z_value has to be and integer withing allowed range (0-4800)")
-    else:
-        valid_flag=False
-        print("x/y/z_stimulus_offset lists have to be the same length")
-    
-    #check that position probabilities line up with number of positions
-    # and that the sum is 1
-    if len(v.position_probability_list)-1!= len(v.y_stimulus_offset):
-        valid_flag=False
-        print("position_probability_list need to be of length 1 + length of x_stimulus_offset list")
-    if sum(v.position_probability_list)!=1:
-        print("position_probability_list does not sum up to 1")
-        valid_flag=False
-
-    #check that catch trial stimulus position is withing allowed range
-    if not isinstance(v.catch_trial_x_position ,int) or v.catch_trial_x_position >4800 or v.catch_trial_x_position <0:
-        valid_flag=False
-        print("catch_trial_x_position has to be an integer between 0 and 4800")
-    if not isinstance(v.catch_trial_y_position ,int) or v.catch_trial_y_position >4800 or v.catch_trial_y_position <0:
-        valid_flag=False
-        print("catch_trial_y_position has to be an integer between 0 and 4800")
-    if not isinstance(v.catch_trial_z_position ,int) or v.catch_trial_z_position >4800 or v.catch_trial_z_position <0:
-        valid_flag=False
-        print("catch_trial_z_position has to be an integer between 0 and 4800")
-
-    #check that catch trial positions are valid
-    if catch_trial_position_flag:
-        valid_flag=False
-        print("catch_trial_x/y/z_position can't line up with other positions")
-
-    if not isinstance(v.probability_of_catch_trial,(int,float)) or v.probability_of_catch_trial<0 or  v.probability_of_catch_trial>1:
-        valid_flag=False
-        print("probability_of_catch_trial has to be a number between 0 and 1")
-
-
-    #check stimulus outer bounds
-    #check tuples of length 2
-    if not isinstance(v.stimulus_x_outer_bounds,tuple) or len(v.stimulus_x_outer_bounds)!=2:
-        valid_flag=False
-        print("stimulus_x_outer_bounds has to be a tuple of length 2")
-    if not isinstance(v.stimulus_y_outer_bounds,tuple) or len(v.stimulus_y_outer_bounds)!=2:
-        valid_flag=False
-        print("stimulus_y_outer_bounds has to be a tuple of length 2")
-    if not isinstance(v.stimulus_z_outer_bounds,tuple) or len(v.stimulus_z_outer_bounds)!=2:
-        valid_flag=False
-        print("stimulus_z_outer_bounds has to be a tuple of length 2")
-    
-    #check values of tuples are valid
-    if not isinstance(v.stimulus_x_outer_bounds[0],int) or not isinstance(v.stimulus_x_outer_bounds[1],int) or v.stimulus_x_outer_bounds[0]<0 or v.stimulus_x_outer_bounds[0]>v.stimulus_x_outer_bounds[1] or v.stimulus_x_outer_bounds[1]>4800:
-        valid_flag=False
-        print("stimulus_x_outer_bounds has to be 2 integer values 0<first values<second value<4800")
-    if not isinstance(v.stimulus_y_outer_bounds[0],int) or not isinstance(v.stimulus_y_outer_bounds[1],int) or v.stimulus_y_outer_bounds[0]<0 or v.stimulus_y_outer_bounds[0]>v.stimulus_y_outer_bounds[1] or v.stimulus_y_outer_bounds[1]>4800:
-        valid_flag=False
-        print("stimulus_y_outer_bounds has to be 2 integer values 0<first values<second value<4800")
-    if not isinstance(v.stimulus_z_outer_bounds[0],int) or not isinstance(v.stimulus_z_outer_bounds[1],int) or v.stimulus_z_outer_bounds[0]<0 or v.stimulus_z_outer_bounds[0]>v.stimulus_z_outer_bounds[1] or v.stimulus_z_outer_bounds[1]>4800:
-        valid_flag=False
-        print("stimulus_z_outer_bounds has to be 2 integer values 0<first values<second value<4800")
-
-
-  
-    #check validity of punishment variables
-    if not isinstance(v.punishment_period,int) or v.punishment_period<0:
-        valid_flag=False
-        print("punishment_period has to be an integer larger or equal to 0")
-    if not isinstance(v.punishment_for_incorrect_timing,bool):
-        valid_flag=False
-        print("punishment_for_incorrect_timing has to be a boolean value")
-    if not isinstance(v.punishment_for_incorrect_stimulus,bool):
-        valid_flag=False
-        print("punishment_for_incorrect_stimulus has to be a boolean value")
-
-
-    if  not valid_flag:
-        stop_framework()
-
-
 
 def run_start():  
     recording_trigger.on()
     #run variable validation for position and probability values, the function will halt the framework if needed
-    variable_validation()
-    #calculate Cumulative distribution function for position probabilities
-    for i in range(len(v.position_probability_list)):
-        v.position_CDF_list___.append(sum(v.position_probability_list[0:i+1]))
-    print("CDF: " + str(v.position_CDF_list___))
+    # variable_validation()
+
     print("starting recording")
 
 def start_trial(event):  
     if(not v.finished_startup___ and event=='start_trial_event'): #first trial will only start if worker has triggered the event manually, meaning the camera is recording
         print("trial #"+str(v.trial_counter___))
+        print("laser on: " +str(v.laser_on))
         #setup the trial
         #turn on speaker and beep for start
         speaker.set_volume(v.beep_volume)
@@ -359,15 +181,21 @@ def start_trial(event):
         set_timer('speaker_off',800)
         v.finished_startup___=True
         goto_state('main_loop')
+        if v.laser_on:
+            set_timer("laser_on",v.laser_delay_from_start)
         set_timer("move_in",300)
+        #calculate Cumulative distribution function for position probabilities
+        if not len(v.position_CDF_list___)>0:
+            for i in range(len(v.position_probability_list)):
+                v.position_CDF_list___.append(sum(v.position_probability_list[0:i+1]))
+            print("CDF: " + str(v.position_CDF_list___))
+        
+
     if (event=='start_walking'):
         wheel.on()
         v.finished_startup___=True
         
         goto_state('main_loop')
-
-
-
 
 def main_loop(event):
     """
@@ -397,6 +225,7 @@ def main_loop(event):
                 if v.position_CDF_list___[i]>=random_value:
                     print("moving to position "+ str(i) + "(0 - correct position)")
                     if i==0:
+                        v.correct_stimulus_counter___+=1
                         x_position = v.correct_stimulus_x_value
                         y_position = v.correct_stimulus_y_value
                         z_position = v.correct_stimulus_z_value
@@ -463,6 +292,17 @@ def all_states(event):
         pump.off()
         v.pump_bool___=False
 
+    if event=="laser_on":
+        if v.laser_pulse_counter___<v.laser_number_of_pulses:
+            v.laser_pulse_counter___+=1
+            laser.on()
+            set_timer("laser_off",v.laser_pulse_duration)
+        else:
+            v.laser_pulse_counter___=0
+
+    if event=='laser_off':
+        laser.off()
+        set_timer("laser_on",v.laser_inter_pulse_interval)
 
     if (event=='speaker_off'):
         speaker.off()
@@ -472,6 +312,7 @@ def all_states(event):
         speaker.off()
         pump.off()
         wheel.off()
+        laser.off()
 
         # print_variables()
         v.trial_counter___+=1
@@ -485,7 +326,7 @@ def all_states(event):
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
         if v.trial_counter___!=v.number_of_trials:
-            set_timer('start_trial_event',v.time_between_trials + v.add_punishment___*v.punishment_period)
+            set_timer('start_trial_event',v.inter_trial_interval + v.add_punishment___*v.punishment_period)
             if v.add_punishment___:
                 print("adding punishment period")
             v.add_punishment___=False
@@ -497,6 +338,7 @@ def all_states(event):
         
 
 def run_end():
+    print('total {} trials. reference material was presented {} times. mouse licked correctly {} times'.format(v.trial_counter___,v.correct_stimulus_counter___,v.correct_lick_counter___))
     #make sure all devices are off
     return_home()
     speaker.off()
@@ -505,5 +347,5 @@ def run_end():
     recording_trigger.off()
     print("stopped recording")
     print_variables()
-    if v.correct_position_counter___!=0:
-        print("success rate: " +str(v.correct_lick_counter___/v.correct_position_counter___*100)+"%")
+    if v.correct_stimulus_counter___!=0:
+        print("success rate: " +str(v.correct_lick_counter___/v.correct_stimulus_counter___*100)+"%")
