@@ -1,14 +1,14 @@
 """
 phase 2: mouse learns to react to stimuli
 process:
-    1. beep for start
+    1. beep for start if trial
     2. after time start moving wheel
     3. move stimulus into place (make the position changeable variable)
     4. move stimulus out after set duration (also variable)
     5. play beep to signal water (different frequency from the start)
     6. give water after set duration from wheel start (also variable)
-    7.stop wheel
-    8. end trial
+    7. stop wheel
+    8. end trial start inter_trial_interval timer until going back to stage 1
 """
 
 from pyControl.utility import *
@@ -45,7 +45,7 @@ v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
 v.stimulus_motor_speed = 1500
 
 
-v.time_between_trials=5000 
+v.inter_trial_interval=5000 
 
 #position in whisking area
 v.stimulus_x_value=2000
@@ -221,7 +221,7 @@ def all_states(event):
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
         if v.trial_counter___!=v.amount_of_trials:
-            set_timer('start_trial_event',v.time_between_trials)
+            set_timer('start_trial_event',v.inter_trial_interval)
             goto_state('start_trial')
         else:
             stop_framework()
