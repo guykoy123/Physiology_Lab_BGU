@@ -30,7 +30,7 @@ sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to 
 recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
 #public variables
-v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
+v.number_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
 v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone start_frequency
 v.pump_duration=75*ms #pump duration for button press
@@ -114,7 +114,7 @@ def all_states(event):
 
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
-        if v.trial_counter___!=v.amount_of_trials:
+        if v.trial_counter___!=v.number_of_trials:
             set_timer('start_trial_event',v.time_between_trials)
             goto_state('start_trial')
         else:

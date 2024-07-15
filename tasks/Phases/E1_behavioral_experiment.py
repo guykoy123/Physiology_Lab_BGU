@@ -5,6 +5,8 @@ In the experiment mouse will be shown stimuli in different positions preset befo
 
 from pyControl.utility import *
 from devices import *
+# from hardware_definitions.full_hardware_definition import *
+
 
 board = Breakout_1_2()
 
