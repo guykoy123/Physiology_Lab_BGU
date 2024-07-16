@@ -172,6 +172,7 @@ def run_start():
 def start_trial(event):  
     if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
         print("trial #"+str(v.trial_counter___))
+        print("laser on: " +str(v.laser_on))
         #setup the trial
         #turn on speaker and beep for start
         speaker.set_volume(v.beep_volume)
@@ -288,6 +289,7 @@ def all_states(event):
             v.laser_pulse_counter___=0
 
     if event=='laser_off':
+        laser.off()
         set_timer("laser_on",v.laser_inter_pulse_interval)
 
     if (event=='end_trial'):
