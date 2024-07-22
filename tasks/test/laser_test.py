@@ -8,13 +8,13 @@ laser=Digital_output(pin = port_exp.port_2.DIO_B)
 v.number_of_pulses=1
 v.pulse_duration=10
 v.inter_pulse_interval=100
-v.___started=False
+v.started___=False
 states = ['main_loop']
 initial_state = 'main_loop'
 events=['turn_on','turn_off']
 def main_loop(event):
-    if not v.___started:
-        v.___started=True
+    if not v.started___:
+        v.started___=True
         publish_event('turn_on')
     if event=='turn_on':
         laser.on()

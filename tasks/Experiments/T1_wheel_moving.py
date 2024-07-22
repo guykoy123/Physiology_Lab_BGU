@@ -22,9 +22,10 @@ v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone frequency
 v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
-
+v.delay_for_water_after_trial_start=100 #time to wait before giving water after wheel stops
 v.pump_duration=75*ms #pump duration for button press
 v.time_of_wheel_spinning=2000 #time after giving water before the wheel stops moving
+v.trial_duration=4000
 v.time_between_trials=5000 
 # v.pump_wait_period = 4500 #time between giving water
 
@@ -35,7 +36,7 @@ v.trial_counter___=0
 
 states = ['start_trial','main_loop']
 initial_state = 'start_trial'
-events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event','end_trial','end_experiment']
+events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event','end_trial','end_experiment','wheel_stop']
 
 def start_trial(event):  
     if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
@@ -47,8 +48,9 @@ def start_trial(event):
         #randomize the duration before experiment begins
         rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
         set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
-        
+        set_timer('pump_on',v.delay_for_water_after_trial_start)
         set_timer('speaker_off',800)
+        set_timer('end_trial',v.trial_duration)
         v.finished_startup___=True
         goto_state('main_loop')
 
@@ -64,7 +66,6 @@ def main_loop(event):
         pump.off()
         v.pump_bool___=False
         
-        
 def all_states(event):
     if (event=='speaker_off'):
         speaker.off()
@@ -72,8 +73,11 @@ def all_states(event):
     if (event=='start_walking'):
         wheel.on()
         v.finished_startup___=True
-        set_timer('pump_on',1000)
-        set_timer('end_trial',v.time_of_wheel_spinning)
+        set_timer('wheel_stop',v.time_of_wheel_spinning)
+    if (event=="wheel_stop"):
+        wheel.off()
+        
+
     if (event=='end_trial'):
         #make sure all devices are off
         speaker.off()

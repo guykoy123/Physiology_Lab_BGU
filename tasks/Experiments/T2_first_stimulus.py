@@ -34,17 +34,18 @@ recording_trigger = Digital_output(pin = board.DAC_1) #needs to be a digital inp
 
 
 #public variables
-v.amount_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
+v.number_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
 v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone start_frequency
 v.water_beep_frequency = 4000 #tone for start of water window
 v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
+v.delay_for_water_after_trial_start=100 #time to wait before giving water after wheel stops
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=75*ms #pump duration for button press
 v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
 v.stimulus_motor_speed = 1500
-
-
+v.trial_duration=4000
+v.stimulus_delay_from_start_of_trial=300 #the amount of time to wait before stimulus moves into whisking position from trial start
 v.inter_trial_interval=5000 
 
 #position in whisking area
@@ -133,46 +134,56 @@ def get_rand_offset():
     return randint(0,v.wheel_delay_offset)/100 + 1
 
 def start_trial(event):  
-    if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
-        print("trial #"+str(v.trial_counter___))
-        #setup the trial
-        #turn on speaker and beep for start
-        speaker.set_volume(v.beep_volume)
-        speaker.sine(v.start_beep_frequency)
-        #randomize the duration before experiment begins
-        rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
-        set_timer('start_walking',v.wheel_delay * rand_offset)
-        set_timer('speaker_off',800)
-        v.finished_startup___=True
-        goto_state('main_loop')
-        set_timer("move_in",300)
+    try:
+        if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
+            print("trial #"+str(v.trial_counter___))
+            #setup the trial
+            #turn on speaker and beep for start
+            speaker.set_volume(v.beep_volume)
+            speaker.sine(v.start_beep_frequency)
+            #randomize the duration before experiment begins
+            rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
+            set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
+            set_timer('pump_on',v.delay_for_water_after_trial_start)
+            set_timer('speaker_off',800)
+            v.finished_startup___=True
+            goto_state('main_loop')
+            set_timer("move_in",v.stimulus_delay_from_start_of_trial)
+            set_timer('end_trial',v.trial_duration)
+    except Exception as e:
+        print(e)
+        stop_framework()
 
 
 
 
 def main_loop(event):
-    if event=="move_in":   
-        v.motors_stationary___=False
-        #calls the function that move along axis, the function returns the ETA
-        #takes the max of all axes ETA for the next event
-        moving_time = move_motor_into_position('z',v.stimulus_z_value) 
-        moving_time = max(moving_time,move_motor_into_position('y',v.stimulus_y_value))
-        moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
-        v.motors_ready___=False
-        set_timer("moved_in",moving_time/v.stimulus_motor_speed*second)
-        
-    elif event =="move_out":
-        if v.motors_stationary___:
+    try:
+        if event=="move_in":   
             v.motors_stationary___=False
             #calls the function that move along axis, the function returns the ETA
             #takes the max of all axes ETA for the next event
-            moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
-            moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
-            moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
-            set_timer("end_trial",moving_time/v.stimulus_motor_speed*second)
-            v.motors_ready___=True
-        else:
-            set_timer("move_out",50)
+            moving_time = move_motor_into_position('z',v.stimulus_z_value) 
+            moving_time = max(moving_time,move_motor_into_position('y',v.stimulus_y_value))
+            moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
+            v.motors_ready___=False
+            set_timer("moved_in",moving_time/v.stimulus_motor_speed*second)
+            
+        elif event =="move_out":
+            if v.motors_stationary___:
+                v.motors_stationary___=False
+                #calls the function that move along axis, the function returns the ETA
+                #takes the max of all axes ETA for the next event
+                moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
+                moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
+                moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
+                set_timer("end_trial",moving_time/v.stimulus_motor_speed*second)
+                v.motors_ready___=True
+            else:
+                set_timer("move_out",50)
+    except Exception as e:
+        print(e)
+        stop_framework()
 
 def all_states(event):
     if(event=='pump_on'):
@@ -201,7 +212,6 @@ def all_states(event):
         v.motors_stationary___=True
         speaker.sine(v.water_beep_frequency)
         set_timer('speaker_off',500)
-        set_timer('pump_on',800)
         set_timer('move_out',v.stimulus_time_window)
         goto_state('main_loop')
     
@@ -220,7 +230,7 @@ def all_states(event):
         v.motors_ready___=True
         #if amount of trials is reached, end task
         #if amount of trials set to -1, will never stop automatically
-        if v.trial_counter___!=v.amount_of_trials:
+        if v.trial_counter___!=v.number_of_trials:
             set_timer('start_trial_event',v.inter_trial_interval)
             goto_state('start_trial')
         else:
