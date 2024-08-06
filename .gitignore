@@ -5,5 +5,6 @@
 !.gitignore
 !readme.txt
 tasks/testing/shit.py
-!controls_dialogs/lab
+!controls_dialogs/
+controls_dialogs/__pycache__
 
