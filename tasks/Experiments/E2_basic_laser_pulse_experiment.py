@@ -17,8 +17,8 @@ laser variables:
 - inter pulse interval
 """
 
-from pyControl.utility import *
 from devices import *
+from pyControl.utility import *
 
 board = Breakout_1_2()
 port_exp = Port_expander(port = board.port_3)
