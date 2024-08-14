@@ -97,6 +97,10 @@ v.in_correct_position_flag___=False
 v.motors_stationary___=True
 v.motors_ready___=True
 
+# Custom controls dialog declaration
+v.custom_controls_dialog = "T3_validation_gui"  # advanced example dialog that is loaded from a .py file
+
+
 states = ['start_trial','main_loop','update_motors']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','pulse','move_in','move_out'
