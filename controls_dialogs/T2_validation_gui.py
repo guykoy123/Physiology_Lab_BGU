@@ -6,7 +6,7 @@ except AttributeError as e:
     print(e)
 try:
 
-    TITLE = "T1 controls validation"
+    TITLE = "T2 controls validation"
     INPUT_WIDTH = 200
 
 
@@ -49,6 +49,7 @@ try:
             row+=1
 
 
+            ##### sound variables #####
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
             controls_layout.addWidget(QtWidgets.QLabel("<b>Sound controls:</b>"), row, 0, 1, 4)
@@ -72,7 +73,7 @@ try:
             controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
             row += 1
 
-            #wheel timing
+            ##### wheel timing #####
             self.delay_to_start_wheel=Spin_var(init_var_dict=init_vars,label="Delay to start wheel:",spin_min=1,spin_max=100000,step=1,varname="delay_to_start_wheel")
             self.delay_to_start_wheel.add_to_grid(controls_layout,row)
             self.delay_to_start_wheel.setBoard(board)
@@ -214,17 +215,17 @@ try:
                     return
                 
                 #validate correct position is outside the outer bounds
-                if stimulus_x_outer_bounds[0]<=stimulus_x_value and stimulus_x_outer_bounds[1]>=stimulus_x_value:
+                if stimulus_x_outer_bounds[1]>=stimulus_x_value:
                     msg = QtWidgets.QMessageBox()
                     msg.setText("stimulus correct position can't be withing the outer bounds range")
                     msg.exec()
                     return
-                if stimulus_y_outer_bounds[0]<=stimulus_y_value and stimulus_y_outer_bounds[1]>=stimulus_y_value:
+                if stimulus_y_outer_bounds[1]>=stimulus_y_value:
                     msg = QtWidgets.QMessageBox()
                     msg.setText("stimulus correct position can't be withing the outer bounds range")
                     msg.exec()
                     return
-                if stimulus_z_outer_bounds[0]<=stimulus_z_value and stimulus_z_outer_bounds[1]>=stimulus_z_value:
+                if stimulus_z_outer_bounds[1]>=stimulus_z_value:
                     msg = QtWidgets.QMessageBox()
                     msg.setText("stimulus correct position can't be withing the outer bounds range")
                     msg.exec()
