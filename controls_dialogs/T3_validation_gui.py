@@ -209,7 +209,16 @@ try:
             self.position_probability_list.setBoard(board)
             row += 1
 
+            ##### misc variables
+            controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
+            row += 1
+            controls_layout.addWidget(QtWidgets.QLabel("<b>Miscellaneous variables:</b>"), row, 0, 1, 4)
+            row += 1
 
+            self.stimulus_motor_speed=Spin_var(init_var_dict=init_vars,label="Motor speed:",spin_min=1,spin_max=1500,step=1,varname="stimulus_motor_speed")
+            self.stimulus_motor_speed.add_to_grid(controls_layout,row)
+            self.stimulus_motor_speed.setBoard(board)
+            row+=1
 
             self.create_validators()
 
