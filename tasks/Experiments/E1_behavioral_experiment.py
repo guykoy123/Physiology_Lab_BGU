@@ -25,6 +25,8 @@ pump = Digital_output(pin = board.BNC_2)
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
 recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
+# Custom controls dialog declaration
+v.custom_controls_dialog = "E1_validation_gui"  # advanced example dialog that is loaded from a .py file
 
 
 

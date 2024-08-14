@@ -29,17 +29,20 @@ pump = Digital_output(pin = board.BNC_2)
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
 recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
+# Custom controls dialog declaration
+v.custom_controls_dialog = "E2_validation_gui"  # advanced example dialog that is loaded from a .py file
+
 #public variables
 v.number_of_trials=-1 #amount of trials to run for this task, if -1 run until manually stopped
 v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone start_frequency
 v.pump_duration=75*ms #pump duration for button press
-v.delay_to_start_pulses=300 #delay from start of trial until laser pulses start
+v.laser_delay_from_start=300 #delay from start of trial until laser pulses start
 v.time_between_trials=5000 
 
-v.number_of_pulses=1
-v.pulse_duration=1 #in milliseconds
-v.inter_pulse_interval=1 #time between consecutive pulses
+v.laser_number_of_pulses=1
+v.laser_pulse_duration=1 #in milliseconds
+v.laser_inter_pulse_interval=1 #time between consecutive pulses
 
 
 #private variables
@@ -68,23 +71,23 @@ def start_trial(event):
 
         set_timer('speaker_off',800)
         v.finished_startup___=True
-        set_timer('laser_on',v.delay_to_start_pulses)
+        set_timer('laser_on',v.laser_delay_from_start)
         goto_state('main_loop')
         
 
 def main_loop(event):
     #cycle through laser pulses using events and timers
     if(event=='laser_on'):
-        if v.pulse_counter___<v.number_of_pulses: #pulse laser
+        if v.pulse_counter___<v.laser_number_of_pulses: #pulse laser
             laser.on()
-            set_timer('laser_off',v.pulse_duration)
+            set_timer('laser_off',v.laser_pulse_duration)
             v.pulse_counter___+=1
         else:#finished pulsing, reset counter and give water
             v.pulse_counter___=0
             publish_event('pump_on')
     if event=='laser_off':
         laser.off()
-        set_timer('laser_on',v.inter_pulse_interval)
+        set_timer('laser_on',v.laser_inter_pulse_interval)
     if(event=='pump_on'): #give water and set timer for stop event
         if(not v.pump_bool___):
             pump.on()
