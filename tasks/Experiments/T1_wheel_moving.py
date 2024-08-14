@@ -7,8 +7,11 @@ process:
 3. give water periodically
 4. lab worker stop experiment when needed
 """
+
+
 from pyControl.utility import *
 from devices import *
+
 
 board = Breakout_1_2()
 wheel = Digital_output(pin = board.port_1.DIO_A)
@@ -22,9 +25,9 @@ v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone frequency
 v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
-v.delay_for_water_after_trial_start=100 #time to wait before giving water after wheel stops
+v.delay_for_water_after_trial_start=100 #time to wait before giving water after trial start
 v.pump_duration=75*ms #pump duration for button press
-v.time_of_wheel_spinning=2000 #time after giving water before the wheel stops moving
+v.time_of_wheel_spinning=2000 #duration of wheel spinning
 v.trial_duration=4000
 v.time_between_trials=5000 
 # v.pump_wait_period = 4500 #time between giving water
@@ -37,6 +40,12 @@ v.trial_counter___=0
 states = ['start_trial','main_loop']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event','end_trial','end_experiment','wheel_stop']
+
+
+# Custom controls dialog declaration
+
+v.custom_controls_dialog = "T1_validation_gui"  # advanced example dialog that is loaded from a .py file
+
 
 def start_trial(event):  
     if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
@@ -96,3 +105,4 @@ def all_states(event):
             stop_framework()
     if (event=='end_experiment'):
         stop_framework()
+

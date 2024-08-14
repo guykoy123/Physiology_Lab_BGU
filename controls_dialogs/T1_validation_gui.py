@@ -43,17 +43,12 @@ try:
             controls_layout = QtWidgets.QGridLayout()
             row = 0
 
-            # Spin_var()
-            self.number_of_trials=Text_var(init_var_dict=init_vars,label="<b>Number of trials:</b>",varname="number_of_trials",text_width=INPUT_WIDTH )
+            self.number_of_trials=Text_var(init_var_dict=init_vars,label="<b>Number of trials:</b> (-1 run trials indefinitely)",varname="number_of_trials",text_width=INPUT_WIDTH )
             self.number_of_trials.add_to_grid(controls_layout,row)
             self.number_of_trials.setBoard(board)
             row+=1
 
 
-            # self.positions = Text_var(init_vars, "📍 <b>Positions</b>", "positions", text_width=INPUT_WIDTH)
-            # self.positions.add_to_grid(controls_layout, row)
-            # self.positions.setBoard(board)
-            # row += 1
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
             controls_layout.addWidget(QtWidgets.QLabel("<b>Sound controls:</b>"), row, 0, 1, 4)
@@ -66,6 +61,7 @@ try:
             self.start_beep_frequency.add_to_grid(controls_layout,row)
             self.start_beep_frequency.setBoard(board)
             row+=1
+
 
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
@@ -109,23 +105,6 @@ try:
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
 
-            # # add other variables that don't need validation
-            # other_variables = [
-            #     "var_a",
-            #     "var_b",
-            #     "var_c",
-            # ]
-            # for other_var in other_variables:
-            #     var_input = Text_var(init_vars, f"<b>{other_var}</b>", other_var, text_width=INPUT_WIDTH)
-            #     var_input.add_to_grid(controls_layout, row)
-            #     var_input.setBoard(board)
-            #     row += 1
-
-            #if you want to add event trigger uncomment the following 3 lines
-            # self.create_events_trigger_groupbox()
-            # controls_layout.addWidget(self.events_groupbox, row, 0, 1, 4)
-            # row += 1
-
             #if you want to add notes uncomment the following 3 lines
             self.create_notes_groupbox()
             controls_layout.addWidget(self.notes_groupbox, row, 0, 1, 4)
@@ -143,16 +122,17 @@ try:
         def create_validators(self):
 
             def trial_timing_validator():
+                """
+                check that wheel delay and spin does not take longer then the length of the trial
+                check that water delay and pump duration do not take longer then the length of the trial
+                """
                 #pull variable values
-                #spn.text() return integers
                 trial_duration = eval(self.trial_duration.spn.text())
                 delay_to_start_wheel=eval(self.delay_to_start_wheel.spn.text())
                 time_of_wheel_spinning=eval(self.time_of_wheel_spinning.spn.text())
                 delay_for_water=eval(self.delay_for_water_after_trial_start.spn.text())
                 pump_duration=eval(self.pump_duration.spn.text())
-                # msg=QtWidgets.QMessageBox()
-                # msg.setText(str(type(trial_duration)))
-                # msg.exec()
+
                 #validate the wheel spinning plus delay fit in duration
                 if delay_to_start_wheel+time_of_wheel_spinning>trial_duration:
                     msg=QtWidgets.QMessageBox()
@@ -173,13 +153,6 @@ try:
                 self.delay_for_water_after_trial_start.set()
                 self.pump_duration.set()
 
-
-            # connect the validator to the line edit and set button
-            # self.trial_duration.
-            # self.trial_duration.spn.textChanged.disconnect()  # disconnect the default returnPressed event
-            # self.trial_duration.spn.valueChanged.connect(trial_timing_validator)
-            # self.trial_duration.spn.textChanged.connect(trial_timing_validator)
-
             self.trial_duration.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.trial_duration.set_btn.clicked.connect(trial_timing_validator)
 
@@ -194,78 +167,6 @@ try:
 
             self.pump_duration.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.pump_duration.set_btn.clicked.connect(trial_timing_validator)
-
-            # # creat position validator
-            # def postion_validator():
-            #     positions = eval(self.positions.line_edit.text())  # grab value from the line edit
-            #     probabilites = eval(self.probabilites.line_edit.text())  # grab value from the line edit
-
-            #     # validate that the input is a list
-            #     if type(positions) is not list:
-            #         msg = QtWidgets.QMessageBox()
-            #         msg.setText("positions must be a list")
-            #         msg.exec()
-            #         return
-
-            #     # validate that the input is the correct length
-            #     position_list_length = len(positions)
-            #     probabilites_list_length = len(probabilites)
-            #     if position_list_length != probabilites_list_length:
-            #         msg = QtWidgets.QMessageBox()
-            #         msg.setText(
-            #             f"positions and probabilites should have the same length.\n Right now positions has length {position_list_length} and probabilites has length {probabilites_list_length}"
-            #         )
-            #         msg.exec()
-            #         return
-
-            #     # if the input is valid then we can set the value as normal
-            #     self.positions.set()
-
-            # # connect the validator to the line edit and set button
-            # self.positions.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
-            # self.positions.set_btn.clicked.disconnect()  # disconnect the default clicked event
-            # self.positions.line_edit.returnPressed.connect(postion_validator)
-            # self.positions.set_btn.clicked.connect(postion_validator)
-
-            # # creat probabilities validator
-            # def probabilities_validator():
-            #     probabilites = eval(self.probabilites.line_edit.text())  # grab value from the line edit
-            #     positions = eval(self.positions.line_edit.text())  # grab value from the line edit
-
-            #     # validate that the input is a list
-            #     if type(probabilites) is not list:
-            #         msg = QtWidgets.QMessageBox()
-            #         msg.setText("positions must be a list")
-            #         msg.exec()
-            #         return
-
-            #     # validate that the input is the correct length
-            #     position_list_length = len(positions)
-            #     probabilites_list_length = len(probabilites)
-            #     if position_list_length != probabilites_list_length:
-            #         msg = QtWidgets.QMessageBox()
-            #         msg.setText(
-            #             f"positions and probabilites should have the same length.\n Right now positions has length {position_list_length} and probabilites has length {probabilites_list_length}"
-            #         )
-            #         msg.exec()
-            #         return
-
-            #     # validate that the input sums to 1
-            #     probability_sum = round(sum(probabilites),3)
-            #     if probability_sum != 1:
-            #         msg = QtWidgets.QMessageBox()
-            #         msg.setText(f"probabilities must sum to 1. It currently sums to {probability_sum}")
-            #         msg.exec()
-            #         return
-
-            #     # if the input is valid then we can set the value as normal
-            #     self.positions.set()
-
-            # # connect the validator to the line edit and set button
-            # self.probabilites.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
-            # self.probabilites.set_btn.clicked.disconnect()  # disconnect the default clicked event
-            # self.probabilites.line_edit.returnPressed.connect(probabilities_validator)
-            # self.probabilites.set_btn.clicked.connect(probabilities_validator)
 
 
 

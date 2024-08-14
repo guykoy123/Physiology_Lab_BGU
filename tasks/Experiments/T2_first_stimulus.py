@@ -70,6 +70,10 @@ v.motor_x_pos___=0
 v.motors_stationary___=True
 v.motors_ready___=True
 
+# Custom controls dialog declaration
+v.custom_controls_dialog = "T2_validation_gui"  # advanced example dialog that is loaded from a .py file
+
+
 states = ['start_trial','main_loop','update_motors']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_on','pump_off',
