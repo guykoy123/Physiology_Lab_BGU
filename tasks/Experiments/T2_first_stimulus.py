@@ -40,19 +40,23 @@ v.start_beep_frequency = 2000 #start tone start_frequency
 v.water_beep_frequency = 4000 #tone for start of water window
 v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
 v.wheel_spin_duration=4000 #amount of time mouse wheel will spin, in validation will make sure does not exceed trial duration
-v.delay_for_water_after_trial_start=100 #time to wait before giving water after wheel stops
+v.delay_for_water_after_trial_start=2000 #time to wait before giving water after wheel stops
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=75*ms #pump duration for button press
 v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
 v.stimulus_motor_speed = 1500
-v.trial_duration=4000
+v.trial_duration=8000
 v.stimulus_delay_from_start_of_trial=300 #the amount of time to wait before stimulus moves into whisking position from trial start
 v.inter_trial_interval=5000 
 
-#position in whisking area
-v.stimulus_x_value=2000
-v.stimulus_y_value=4000
-v.stimulus_z_value=4800
+#positions in whisking area
+v.x_stimulus_position=[]
+v.y_stimulus_position=[]
+v.z_stimulus_position=[]
+
+#position probability list. first one is the correct position, the rest are corresponding to their order in the offset list
+v.position_probability_list=[]
+v.position_CDF_list___=[] #Cumulative distribution function for the probabilities
 
 #limits to move out of whisking area
 v.stimulus_x_outer_bounds=(800,1200)
@@ -138,57 +142,80 @@ def move_motor_into_position(motor, position):
 def get_rand_offset():
     return randint(0,v.wheel_delay_offset)/100 + 1
 
+def run_start():
+    #calculate Cumulative distribution function for position probabilities
+    for i in range(len(v.position_probability_list)):
+        v.position_CDF_list___.append(sum(v.position_probability_list[0:i+1]))
+    print("CDF: " + str(v.position_CDF_list___))
+    #setup the trial
+    recording_trigger.on()
+    print("triggered recording")
+
 def start_trial(event):  
-    try:
-        if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
-            print("trial #"+str(v.trial_counter___))
-            #setup the trial
-            #turn on speaker and beep for start
-            speaker.set_volume(v.beep_volume)
-            speaker.sine(v.start_beep_frequency)
-            #randomize the duration before experiment begins
-            rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
-            set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
-            set_timer('pump_on',v.delay_for_water_after_trial_start)
-            set_timer('speaker_off',800)
-            v.finished_startup___=True
-            goto_state('main_loop')
-            set_timer("move_in",v.stimulus_delay_from_start_of_trial)
-            set_timer('end_trial',v.trial_duration)
-    except Exception as e:
-        print(e)
-        stop_framework()
+
+    if(not v.finished_startup___ and (event=='start_trial_event' or v.trial_counter___==0)):
+        print("trial #"+str(v.trial_counter___))
+        #setup the trial
+        #turn on speaker and beep for start
+        speaker.set_volume(v.beep_volume)
+        speaker.sine(v.start_beep_frequency)
+
+        #randomize the duration before experiment begins
+        rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
+        set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
+
+        set_timer('pump_on',v.delay_for_water_after_trial_start)
+        set_timer('speaker_off',800)
+
+        v.finished_startup___=True
+
+        goto_state('main_loop')
+        set_timer("move_in",v.stimulus_delay_from_start_of_trial)
+        set_timer('end_trial',v.trial_duration)
+
 
 
 
 
 def main_loop(event):
-    try:
-        if event=="move_in":   
+    if event=="move_in":   
+        v.motors_stationary___=False
+        #generate value between 0 and 1 to pick a desired position (using the CDF)
+        #set x/y/z_position to desired value
+        #move motor into position
+        random_value = random() #pick random material based on preset ratio
+        print("random value: "+str(random_value))
+        for i in range(len(v.position_CDF_list___)):
+            
+            if v.position_CDF_list___[i]>=random_value:
+                x_position = v.z_stimulus_position[i]
+                y_position = v.y_stimulus_position[i]
+                z_position = v.z_stimulus_position[i]
+                break
+
+        
+        moving_time = move_motor_into_position('z',z_position) 
+        #calls the function that move along axis, the function returns the ETA
+        #takes the max of all axes ETA for the next event
+        moving_time = max(moving_time,move_motor_into_position('y',y_position))
+        moving_time = max(moving_time,move_motor_into_position('x',x_position))
+        v.motors_ready___=False
+
+        set_timer("moved_in",moving_time/v.stimulus_motor_speed*second)
+        
+    elif event =="move_out":
+        if v.motors_stationary___:
             v.motors_stationary___=False
             #calls the function that move along axis, the function returns the ETA
             #takes the max of all axes ETA for the next event
-            moving_time = move_motor_into_position('z',v.stimulus_z_value) 
-            moving_time = max(moving_time,move_motor_into_position('y',v.stimulus_y_value))
-            moving_time = max(moving_time,move_motor_into_position('x',v.stimulus_x_value))
-            v.motors_ready___=False
-            set_timer("moved_in",moving_time/v.stimulus_motor_speed*second)
-            
-        elif event =="move_out":
-            if v.motors_stationary___:
-                v.motors_stationary___=False
-                #calls the function that move along axis, the function returns the ETA
-                #takes the max of all axes ETA for the next event
-                moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
-                moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
-                moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
-                set_timer("end_trial",moving_time/v.stimulus_motor_speed*second)
-                v.motors_ready___=True
-            else:
-                set_timer("move_out",50)
-    except Exception as e:
-        print(e)
-        stop_framework()
+            moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
+            moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
+            moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
+            set_timer("end_trial",moving_time/v.stimulus_motor_speed*second + 100)
+            v.motors_ready___=True
+        else:
+            set_timer("move_out",50)
+
 
 def all_states(event):
     if(event=='pump_on'):
@@ -205,10 +232,7 @@ def all_states(event):
 
     if (event=='speaker_off'):
         speaker.off()
-    if(not v.finished_startup___):
-        #setup the trial
-        recording_trigger.on()
-        print("triggered recording")
+        
     if (event=='start_walking'):
         wheel.on()
         set_timer('stop_wheel',v.wheel_spin_duration)
@@ -230,7 +254,7 @@ def all_states(event):
         pump.off()
         wheel.off()
 
-        print_variables()
+        # print_variables()
         v.trial_counter___+=1
 
         #reset flags
@@ -244,8 +268,8 @@ def all_states(event):
             goto_state('start_trial')
         else:
             stop_framework()
-    if (event=='end_experiment'):
-        stop_framework()
+    # if (event=='end_experiment'):
+    #     stop_framework()
 
 def run_end():
     #make sure all devices are off

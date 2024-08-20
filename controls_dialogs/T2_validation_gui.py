@@ -70,7 +70,7 @@ try:
 
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
-            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure[ms]:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
+            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure [ms]:</b> <br>(all delays are calculated from start of trial)<br>When setting value be sure to consider at least 3 seconds of time for stimulus to move."), row, 0, 1, 4)
             row += 1
 
             ##### wheel timing #####
@@ -129,21 +129,34 @@ try:
             controls_layout.addWidget(QtWidgets.QLabel("<b>Stimulus positioning:</b>"), row, 0, 1, 4)
             row += 1
 
-            ##### correct stimulus variables #####
-            self.stimulus_x_value=Spin_var(init_var_dict=init_vars,label="Stimulus X coordinate:",spin_min=1,spin_max=4800,step=1,varname="stimulus_x_value")
-            self.stimulus_x_value.add_to_grid(controls_layout,row)
-            self.stimulus_x_value.setBoard(board)
-            row+=1
+            ##### stimulus variables #####
+            controls_layout.addWidget(QtWidgets.QLabel("<br>Positions list contains the coordinates for the correlated axis.<br>Format: [integer,integer,...]"), row, 0, 1, 4)
+            row += 1
+            
+            self.x_stimulus_position = Text_var(init_vars, "Stimulus X position list:", "x_stimulus_position", text_width=INPUT_WIDTH)
+            self.x_stimulus_position.add_to_grid(controls_layout, row)
+            self.x_stimulus_position.setBoard(board)
+            row += 1
 
-            self.stimulus_y_value=Spin_var(init_var_dict=init_vars,label="Stimulus Y coordinate:",spin_min=1,spin_max=4800,step=1,varname="stimulus_y_value")
-            self.stimulus_y_value.add_to_grid(controls_layout,row)
-            self.stimulus_y_value.setBoard(board)
-            row+=1
+            self.y_stimulus_position = Text_var(init_vars, "Stimulus Y position list:", "y_stimulus_position", text_width=INPUT_WIDTH)
+            self.y_stimulus_position.add_to_grid(controls_layout, row)
+            self.y_stimulus_position.setBoard(board)
+            row += 1
 
-            self.stimulus_z_value=Spin_var(init_var_dict=init_vars,label="Stimulus Z coordinate:",spin_min=1,spin_max=4800,step=1,varname="stimulus_z_value")
-            self.stimulus_z_value.add_to_grid(controls_layout,row)
-            self.stimulus_z_value.setBoard(board)
-            row+=1
+            self.z_stimulus_position = Text_var(init_vars, "Stimulus Z position list:", "z_stimulus_position", text_width=INPUT_WIDTH)
+            self.z_stimulus_position.add_to_grid(controls_layout, row)
+            self.z_stimulus_position.setBoard(board)
+            row += 1
+
+            ##### Probability list #####
+            controls_layout.addWidget(QtWidgets.QLabel("<br>The probability list gives probabilities of a certain position being used in a trial.<br>(in order of position list)<br>Total probabilities have to sum up to 1.<br>Format: [float,float,...]"), row, 0, 1, 4)
+            row += 1
+
+            self.position_probability_list = Text_var(init_vars, "Position probability list:", "position_probability_list", text_width=INPUT_WIDTH)
+            self.position_probability_list.add_to_grid(controls_layout, row)
+            self.position_probability_list.setBoard(board)
+            row += 1
+
             
             ##### outer bounds variables #####
             controls_layout.addWidget(QtWidgets.QLabel("Outer bounds are the area where the stimulus moves to after being in whisking range<br>(waiting between trials) <br> The stimulus X/Y/Z coordinates can't be inside the bounds.<br> Written in format (start_position,end_position)"), row, 0, 1, 4)
@@ -192,15 +205,29 @@ try:
                 """
                 check that correct stimulus position does not fall in the outer bounds range
                 """
-                #pull correct position values
-                stimulus_x_value=eval(self.stimulus_x_value.spn.text())
-                stimulus_y_value=eval(self.stimulus_y_value.spn.text())
-                stimulus_z_value=eval(self.stimulus_z_value.spn.text())
+
+                #pull position list values
+                x_stimulus_position=eval(self.x_stimulus_position.line_edit.text())
+                y_stimulus_position=eval(self.y_stimulus_position.line_edit.text())
+                z_stimulus_position=eval(self.z_stimulus_position.line_edit.text())
 
                 #pull outer bounds values (automatically parses into tuple type)
                 stimulus_x_outer_bounds=eval(self.stimulus_x_outer_bounds.line_edit.text())
                 stimulus_y_outer_bounds=eval(self.stimulus_y_outer_bounds.line_edit.text())
                 stimulus_z_outer_bounds=eval(self.stimulus_z_outer_bounds.line_edit.text())
+
+                #check that position lists are of the same length
+                if not len(x_stimulus_position)==len(y_stimulus_position)==len(z_stimulus_position):
+                    msg = QtWidgets.QMessageBox()
+                    msg.setText("Position lists have to be of the same length")
+                    msg.exec()
+                    #set values because user might be in the process of inputting values
+                    self.x_stimulus_position.set()
+                    self.y_stimulus_position.set()
+                    self.z_stimulus_position.set()
+                    return
+                
+
 
                 #validate bounds are withing legal values (0-4800)
                 if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>4800 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
@@ -219,30 +246,61 @@ try:
                     msg.exec()
                     return
                 
-                #validate correct position is outside the outer bounds
-                if stimulus_x_outer_bounds[1]>=stimulus_x_value:
-                    msg = QtWidgets.QMessageBox()
-                    msg.setText("stimulus correct position can't be withing the outer bounds range")
-                    msg.exec()
-                    return
-                if stimulus_y_outer_bounds[1]>=stimulus_y_value:
-                    msg = QtWidgets.QMessageBox()
-                    msg.setText("stimulus correct position can't be withing the outer bounds range")
-                    msg.exec()
-                    return
-                if stimulus_z_outer_bounds[1]>=stimulus_z_value:
-                    msg = QtWidgets.QMessageBox()
-                    msg.setText("stimulus correct position can't be withing the outer bounds range")
-                    msg.exec()
-                    return
+                #get minimum values for each axis (from all positions)
+                #while also checking that offset+correct_position is withing legal bounds of the axis
+                x_min=4800
+                for i in range(len(x_stimulus_position)):
+                    new_val=x_stimulus_position[i]
+                    x_min=min(x_min,new_val)
+                    if new_val<0 or new_val>4800:
+                        msg = QtWidgets.QMessageBox()
+                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in x position list in position " + str(i))
+                        msg.exec()
+                        return
+                y_min=4800
+                for i in range(len(y_stimulus_position)):
+                    new_val=y_stimulus_position[i]
+                    y_min=min(y_min,new_val)
+                    if new_val<0 or new_val>4800:
+                        msg = QtWidgets.QMessageBox()
+                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in y position list in position " + str(i))
+                        msg.exec()
+                        return
+                z_min=4800
+                for i in range(len(z_stimulus_position)):
+                    new_val=z_stimulus_position[i]
+                    z_min=min(z_min,new_val)
+                    if new_val<0 or new_val>4800:
+                        msg = QtWidgets.QMessageBox()
+                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in z position list in position " + str(i))
+                        msg.exec()
+                        return
 
-                self.stimulus_x_value.set()
-                self.stimulus_y_value.set()
-                self.stimulus_z_value.set()
+                #validate positions are outside the outer bounds
+                if stimulus_x_outer_bounds[1]>x_min:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setText("stimulus positions can't be withing the outer bounds range")
+                    msg.exec()
+                    return
+                if stimulus_y_outer_bounds[1]>y_min:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setText("stimulus positions can't be withing the outer bounds range")
+                    msg.exec()
+                    return
+                if stimulus_z_outer_bounds[1]>z_min:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setText("stimulus positions can't be withing the outer bounds range")
+                    msg.exec()
+                    return
 
                 self.stimulus_x_outer_bounds.set()
                 self.stimulus_y_outer_bounds.set()
                 self.stimulus_z_outer_bounds.set()
+
+                self.x_stimulus_position.set()
+                self.y_stimulus_position.set()
+                self.z_stimulus_position.set()
+
 
 
 
@@ -266,8 +324,8 @@ try:
 
             def trial_timing_validator():
                 """
-                check that wheel delay does not take longer then the length of the trial
-                check that water delay and pump duration do not take longer then the length of the trial
+                check that wheel delay does not take longer than the length of the trial
+                check that water delay and pump duration do not take longer than the length of the trial
                 """
                 #pull variable values
                 trial_duration = eval(self.trial_duration.spn.text())
@@ -275,6 +333,8 @@ try:
                 delay_for_water=eval(self.delay_for_water_after_trial_start.spn.text())
                 pump_duration=eval(self.pump_duration.spn.text())
                 wheel_spin_duration = eval(self.wheel_spin_duration.spn.text())
+                stimulus_delay_from_start = eval(self.stimulus_delay_from_start.spn.text())
+                stimulus_time_window = eval(self.stimulus_time_window.spn.text())
 
                 #validate the wheel spinning plus delay fit in duration
                 if delay_to_start_wheel+wheel_spin_duration>trial_duration:
@@ -289,12 +349,51 @@ try:
                     msg.exec()
                     return
                 
+                if stimulus_delay_from_start+stimulus_time_window+3000 > trial_duration:
+                    msg=QtWidgets.QMessageBox()
+                    msg.setText("stimulus delay + stimulus time window + 3sec must be <= of trial duration")
+                    msg.exec()
+                    return
+                
                 #save variable values because they are valid
                 self.delay_to_start_wheel.set()
                 self.trial_duration.set()
                 self.delay_for_water_after_trial_start.set()
                 self.pump_duration.set()
-            
+                self.stimulus_delay_from_start.set()
+                self.stimulus_time_window.set()
+
+            def probability_validator():
+                """
+                checks probabilities sum to 1 and that every position has a corresponding probability
+                """
+                #pull probability list
+                position_probability_list=eval(self.position_probability_list.line_edit.text())
+
+                #run through values making sure the're floats that sum to 1
+                sum=0
+                for i in range(len(position_probability_list)):
+                    if position_probability_list[i]<=1 and (type(position_probability_list[i])==float or type(position_probability_list[i])==int) :
+                        sum+=position_probability_list[i]
+                    else:
+                        msg=QtWidgets.QMessageBox()
+                        msg.setText("Probabilities have to be numbers less than or equal to 1 and in float format.<br>Problem with number in position "+str(i))
+                        msg.exec()
+                        return
+                if sum!=1:
+                    msg=QtWidgets.QMessageBox()
+                    msg.setText("Probabilities have to sum to 1")
+                    msg.exec()
+                    return
+                if len(position_probability_list) != len(eval(self.x_stimulus_position.line_edit.text())):
+                    msg=QtWidgets.QMessageBox()
+                    msg.setText("Length of probabilities list has to match number of positions.")
+                    msg.exec()
+                    return
+                
+                self.position_probability_list.set()
+
+
             ##### trial structure and timing variables #####
             self.trial_duration.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.trial_duration.set_btn.clicked.connect(trial_timing_validator)
@@ -307,6 +406,13 @@ try:
 
             self.pump_duration.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.pump_duration.set_btn.clicked.connect(trial_timing_validator)
+            
+            self.stimulus_delay_from_start.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.stimulus_delay_from_start.set_btn.clicked.connect(trial_timing_validator)
+
+            self.stimulus_time_window.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.stimulus_time_window.set_btn.clicked.connect(trial_timing_validator)
+
 
             ##### sound variables #####
             self.start_beep_frequency.set_btn.clicked.disconnect()
@@ -316,14 +422,21 @@ try:
             self.start_beep_frequency.set_btn.clicked.connect(sound_validator)
 
             ##### stimulus position variables #####
-            self.stimulus_x_value.set_btn.clicked.disconnect()
-            self.stimulus_x_value.set_btn.clicked.connect(position_validator)
+            self.x_stimulus_position.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
+            self.x_stimulus_position.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.x_stimulus_position.line_edit.returnPressed.connect(position_validator)
+            self.x_stimulus_position.set_btn.clicked.connect(position_validator)
 
-            self.stimulus_y_value.set_btn.clicked.disconnect()
-            self.stimulus_y_value.set_btn.clicked.connect(position_validator)
+            self.y_stimulus_position.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
+            self.y_stimulus_position.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.y_stimulus_position.line_edit.returnPressed.connect(position_validator)
+            self.y_stimulus_position.set_btn.clicked.connect(position_validator)
 
-            self.stimulus_z_value.set_btn.clicked.disconnect()
-            self.stimulus_z_value.set_btn.clicked.connect(position_validator)
+            self.z_stimulus_position.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
+            self.z_stimulus_position.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.z_stimulus_position.line_edit.returnPressed.connect(position_validator)
+            self.z_stimulus_position.set_btn.clicked.connect(position_validator)
+
             # connect the validator to the line edit and set button
             self.stimulus_x_outer_bounds.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
             self.stimulus_x_outer_bounds.set_btn.clicked.disconnect()  # disconnect the default clicked event
@@ -339,6 +452,13 @@ try:
             self.stimulus_z_outer_bounds.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.stimulus_z_outer_bounds.line_edit.returnPressed.connect(position_validator)
             self.stimulus_z_outer_bounds.set_btn.clicked.connect(position_validator)
+
+            
+            ##### probability list #####
+            self.position_probability_list.line_edit.returnPressed.disconnect()  # disconnect the default returnPressed event
+            self.position_probability_list.set_btn.clicked.disconnect()  # disconnect the default clicked event
+            self.position_probability_list.line_edit.returnPressed.connect(probability_validator)
+            self.position_probability_list.set_btn.clicked.connect(probability_validator)
 
         def create_events_trigger_groupbox(self):
             # Events groupbox.
