@@ -123,8 +123,8 @@ try:
 
             def trial_timing_validator():
                 """
-                check that wheel delay and spin does not take longer then the length of the trial
-                check that water delay and pump duration do not take longer then the length of the trial
+                check that wheel delay and spin does not take longer than the length of the trial
+                check that water delay and pump duration do not take longer than the length of the trial
                 """
                 #pull variable values
                 trial_duration = eval(self.trial_duration.spn.text())

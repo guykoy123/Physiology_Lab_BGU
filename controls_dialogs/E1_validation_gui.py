@@ -320,17 +320,17 @@ try:
                 #validate bounds are withing legal values (0-4800)
                 if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>4800 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
                 if stimulus_y_outer_bounds[0]<0 or stimulus_y_outer_bounds[1]>4800 or type(stimulus_y_outer_bounds[0])!=int or type(stimulus_y_outer_bounds[1])!=int or stimulus_y_outer_bounds[1]<stimulus_y_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
                 if stimulus_z_outer_bounds[0]<0 or stimulus_z_outer_bounds[1]>4800 or type(stimulus_z_outer_bounds[0])!=int or type(stimulus_z_outer_bounds[1])!=int or stimulus_z_outer_bounds[1]<stimulus_z_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
                 
@@ -435,7 +435,7 @@ try:
                         sum+=position_probability_list[i]
                     else:
                         msg=QtWidgets.QMessageBox()
-                        msg.setText("Probabilities have to be numbers less then 1 and in float format.<br>Problem with number in position "+str(i))
+                        msg.setText("Probabilities have to be numbers less than 1 and in float format.<br>Problem with number in position "+str(i))
                         msg.exec()
                         return
                 if sum!=1:

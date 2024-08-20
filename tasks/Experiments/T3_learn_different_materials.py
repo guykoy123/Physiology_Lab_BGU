@@ -165,12 +165,12 @@ def get_rand_offset():
 
 def run_start():  
     recording_trigger.on()
-    print("starting recording!!!!!!!!!!!!!!!!!")
+    print("starting recording")
     #calculate Cumulative distribution function for position probabilities
     for i in range(len(v.position_probability_list)):
         v.position_CDF_list___.append(sum(v.position_probability_list[0:i+1]))
     print("CDF: " + str(v.position_CDF_list___))
-    print("starting recording")
+
 
 
 def start_trial(event):  
