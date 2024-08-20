@@ -35,6 +35,7 @@ pump = Digital_output(pin = board.BNC_2)
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
 recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
+trial_pulse=Digital_output(port_exp.port_3.DIO_A) #a pulse will be sent at the start of each trial to signal to an external system
 
 
 
@@ -105,7 +106,7 @@ states = ['start_trial','main_loop','update_motors']
 initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_off','pump_on','pulse','move_in','move_out'
           ,'lick_1','lick_1_off','exit_position','laser_on','laser_off',
-          'start_trial_event','end_trial','end_experiment']
+          'start_trial_event','end_trial','end_experiment','stop_trial_pulse']
 
 
 def return_home():
@@ -185,7 +186,12 @@ def start_trial(event):
         rand_offset = randint(0,v.wheel_delay_offset)/100 + 1
         set_timer('start_walking',v.delay_to_start_wheel * rand_offset)
         set_timer('speaker_off',800)
+
         v.finished_startup___=True
+
+        trial_pulse.on()
+        set_timer("stop_trial_pulse",5)
+
         goto_state('main_loop')
         if v.laser_on:
             set_timer("laser_on",v.laser_delay_from_start)
@@ -279,6 +285,9 @@ def all_states(event):
 
     if (event=='speaker_off'):
         speaker.off()
+
+    if event == 'stop_trial_pulse':
+        trial_pulse.off()
 
     if (event=='start_walking'):
         wheel.on()

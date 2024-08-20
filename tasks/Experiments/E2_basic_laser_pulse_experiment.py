@@ -29,6 +29,9 @@ pump = Digital_output(pin = board.BNC_2)
 sync_output = Rsync(pin=board.BNC_1,mean_IPI=1500,event_name="pulse") #needs to be a digital input on the intan system
 recording_trigger = Digital_output(pin = port_exp.port_2.DIO_A) #needs to be a digital input on the intan system
 
+trial_pulse=Digital_output(port_exp.port_3.DIO_A) #a pulse will be sent at the start of each trial to signal to an external system
+
+
 # Custom controls dialog declaration
 v.custom_controls_dialog = "E2_validation_gui"  # advanced example dialog that is loaded from a .py file
 
@@ -53,12 +56,12 @@ v.pulse_counter___=0
 states = ['start_trial','main_loop']
 initial_state = 'start_trial'
 events = ['speaker_off','pump_off','pump_on','pulse','laser_on','laser_off',
-          'start_trial_event','end_trial','end_experiment']
+          'start_trial_event','end_trial','end_experiment','stop_trial_pulse']
 
 
 def run_start():  
     recording_trigger.on()
-    #TODO: add laser variables validation
+
 
 
 def start_trial(event):  
@@ -68,6 +71,9 @@ def start_trial(event):
         #turn on speaker and beep for start
         speaker.set_volume(v.beep_volume)
         speaker.sine(v.start_beep_frequency)
+
+        trial_pulse.on()
+        set_timer("stop_trial_pulse",5)
 
         set_timer('speaker_off',800)
         v.finished_startup___=True
@@ -102,6 +108,9 @@ def main_loop(event):
 def all_states(event):
     if (event=='speaker_off'):
         speaker.off()
+
+    if event == 'stop_trial_pulse':
+        trial_pulse.off()
 
     if (event=='end_trial'):
         #make sure all devices are off

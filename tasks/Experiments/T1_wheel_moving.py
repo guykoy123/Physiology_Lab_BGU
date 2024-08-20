@@ -14,10 +14,11 @@ from devices import *
 
 
 board = Breakout_1_2()
+port_exp = Port_expander(port = board.port_3)
 wheel = Digital_output(pin = board.port_1.DIO_A)
 speaker = Audio_board(board.port_4) # Instantiate audio board.
 pump = Digital_output(pin = board.BNC_2)
-
+trial_pulse=Digital_output(port_exp.port_3.DIO_A) #a pulse will be sent at the start of each trial to signal to an external system
 
 #public variables
 v.number_of_trials=-1 #number of trials to run for this task, if -1 run until manually stopped
@@ -39,7 +40,8 @@ v.trial_counter___=0
 
 states = ['start_trial','main_loop']
 initial_state = 'start_trial'
-events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event','end_trial','end_experiment','wheel_stop']
+events = ['speaker_off','start_walking','pump_off','pump_on','start_trial_event'
+          ,'stop_trial_pulse','end_trial','end_experiment','wheel_stop']
 
 
 # Custom controls dialog declaration
@@ -62,7 +64,9 @@ def start_trial(event):
         set_timer('end_trial',v.trial_duration)
         v.finished_startup___=True
         goto_state('main_loop')
-
+        trial_pulse.on()
+        set_timer("stop_trial_pulse",5)
+      
 
 
 def main_loop(event):
@@ -78,6 +82,9 @@ def main_loop(event):
 def all_states(event):
     if (event=='speaker_off'):
         speaker.off()
+    
+    if event == 'stop_trial_pulse':
+        trial_pulse.off()
 
     if (event=='start_walking'):
         wheel.on()
