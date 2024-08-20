@@ -39,6 +39,7 @@ v.beep_volume = 50 #speaker volume
 v.start_beep_frequency = 2000 #start tone start_frequency
 v.water_beep_frequency = 4000 #tone for start of water window
 v.delay_to_start_wheel = 300 #delay from start of trial to start of wheel turn
+v.wheel_spin_duration=4000 #amount of time mouse wheel will spin, in validation will make sure does not exceed trial duration
 v.delay_for_water_after_trial_start=100 #time to wait before giving water after wheel stops
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=75*ms #pump duration for button press
@@ -79,7 +80,7 @@ initial_state = 'start_trial'
 events = ['speaker_off','start_walking','pump_on','pump_off',
           'button_press','pulse','move_in','move_out','moved_in'
           ,'lick_1','lick_1_off',
-          'start_trial_event','end_trial','end_experiment']
+          'start_trial_event','end_trial','end_experiment','stop_wheel']
     
     
 def return_home():
@@ -210,6 +211,7 @@ def all_states(event):
         print("triggered recording")
     if (event=='start_walking'):
         wheel.on()
+        set_timer('stop_wheel',v.wheel_spin_duration)
         v.finished_startup___=True
 
     elif event=='moved_in': #runs when stimulus moved into place
@@ -218,7 +220,10 @@ def all_states(event):
         set_timer('speaker_off',500)
         set_timer('move_out',v.stimulus_time_window)
         goto_state('main_loop')
-    
+
+    if event == 'stop_wheel':
+        wheel.off()
+
     if (event=='end_trial'):
         #make sure all devices are off
         speaker.off()

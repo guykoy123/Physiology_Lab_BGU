@@ -70,7 +70,7 @@ try:
 
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
-            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
+            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure[ms]:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
             row += 1
 
             ##### wheel timing #####
@@ -79,9 +79,14 @@ try:
             self.delay_to_start_wheel.setBoard(board)
             row+=1
 
-            self.wheel_delay_offset=Spin_var(init_var_dict=init_vars,label="Wheel delay offset:",spin_min=1,spin_max=100,step=1,varname="wheel_delay_offset")
+            self.wheel_delay_offset=Spin_var(init_var_dict=init_vars,label="Wheel delay offset[%]:",spin_min=1,spin_max=100,step=1,varname="wheel_delay_offset")
             self.wheel_delay_offset.add_to_grid(controls_layout,row)
             self.wheel_delay_offset.setBoard(board)
+            row+=1
+
+            self.wheel_spin_duration=Spin_var(init_var_dict=init_vars,label="Wheel spin duration:",spin_min=1,spin_max=100000,step=1,varname="wheel_spin_duration")
+            self.wheel_spin_duration.add_to_grid(controls_layout,row)
+            self.wheel_spin_duration.setBoard(board)
             row+=1
 
 
@@ -269,11 +274,12 @@ try:
                 delay_to_start_wheel=eval(self.delay_to_start_wheel.spn.text())
                 delay_for_water=eval(self.delay_for_water_after_trial_start.spn.text())
                 pump_duration=eval(self.pump_duration.spn.text())
+                wheel_spin_duration = eval(self.wheel_spin_duration.spn.text())
 
                 #validate the wheel spinning plus delay fit in duration
-                if delay_to_start_wheel>trial_duration:
+                if delay_to_start_wheel+wheel_spin_duration>trial_duration:
                     msg=QtWidgets.QMessageBox()
-                    msg.setText("Delay to start wheel must be <= of trial duration")
+                    msg.setText("Delay to start wheel + wheel spin duration must be <= of trial duration")
                     msg.exec()
                     return
                 
