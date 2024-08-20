@@ -90,7 +90,7 @@ try:
 
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
-            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
+            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure[ms]:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
             row += 1
 
             self.pump_duration=Spin_var(init_vars,"Pump duration:",1,500,1,"pump_duration")

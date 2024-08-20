@@ -75,7 +75,7 @@ try:
 
             controls_layout.addWidget(QtWidgets.QLabel("<hr>"), row, 0, 1, 4)
             row += 1
-            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
+            controls_layout.addWidget(QtWidgets.QLabel("<b>Trial structure[ms]:</b> <br>(all delays are calculated from start of trial)"), row, 0, 1, 4)
             row += 1
 
             ##### wheel timing #####
@@ -84,7 +84,7 @@ try:
             self.delay_to_start_wheel.setBoard(board)
             row+=1
 
-            self.wheel_delay_offset=Spin_var(init_var_dict=init_vars,label="Wheel delay offset:",spin_min=1,spin_max=100,step=1,varname="wheel_delay_offset")
+            self.wheel_delay_offset=Spin_var(init_var_dict=init_vars,label="Wheel delay offset[%]:",spin_min=1,spin_max=100,step=1,varname="wheel_delay_offset")
             self.wheel_delay_offset.add_to_grid(controls_layout,row)
             self.wheel_delay_offset.setBoard(board)
             row+=1
