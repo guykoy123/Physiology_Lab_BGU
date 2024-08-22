@@ -216,7 +216,7 @@ def main_loop(event):
             moving_time = move_motor_into_position('y',randint(v.stimulus_y_outer_bounds[0],v.stimulus_y_outer_bounds[1]))
             moving_time = max(moving_time,move_motor_into_position('x',randint(v.stimulus_x_outer_bounds[0],v.stimulus_x_outer_bounds[1])))
             moving_time = max(moving_time,move_motor_into_position('z',randint(v.stimulus_z_outer_bounds[0],v.stimulus_z_outer_bounds[1])))
-            set_timer("end_trial",moving_time/v.stimulus_motor_speed*second + 100)
+            #set_timer("end_trial",moving_time/v.stimulus_motor_speed*second + 100) commented out because now ends when trial duration runs out
             v.motors_ready___=True
         else:
             set_timer("move_out",50)
