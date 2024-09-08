@@ -229,50 +229,50 @@ try:
                 
 
 
-                #validate bounds are withing legal values (0-4800)
-                if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>4800 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
+                #validate bounds are withing legal values (0-1700)
+                if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>1700 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less then or equal to end position")
                     msg.exec()
                     return
-                if stimulus_y_outer_bounds[0]<0 or stimulus_y_outer_bounds[1]>4800 or type(stimulus_y_outer_bounds[0])!=int or type(stimulus_y_outer_bounds[1])!=int or stimulus_y_outer_bounds[1]<stimulus_y_outer_bounds[0]:
+                if stimulus_y_outer_bounds[0]<0 or stimulus_y_outer_bounds[1]>1700 or type(stimulus_y_outer_bounds[0])!=int or type(stimulus_y_outer_bounds[1])!=int or stimulus_y_outer_bounds[1]<stimulus_y_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less then or equal to end position")
                     msg.exec()
                     return
-                if stimulus_z_outer_bounds[0]<0 or stimulus_z_outer_bounds[1]>4800 or type(stimulus_z_outer_bounds[0])!=int or type(stimulus_z_outer_bounds[1])!=int or stimulus_z_outer_bounds[1]<stimulus_z_outer_bounds[0]:
+                if stimulus_z_outer_bounds[0]<0 or stimulus_z_outer_bounds[1]>1700 or type(stimulus_z_outer_bounds[0])!=int or type(stimulus_z_outer_bounds[1])!=int or stimulus_z_outer_bounds[1]<stimulus_z_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less then or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less then or equal to end position")
                     msg.exec()
                     return
                 
                 #get minimum values for each axis (from all positions)
                 #while also checking that offset+correct_position is withing legal bounds of the axis
-                x_min=4800
+                x_min=1700
                 for i in range(len(x_stimulus_position)):
                     new_val=x_stimulus_position[i]
                     x_min=min(x_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in x position list in position " + str(i))
+                        msg.setText("Position value value must be within 0-1700 range.<br>Found problem in x position list in position " + str(i))
                         msg.exec()
                         return
-                y_min=4800
+                y_min=1700
                 for i in range(len(y_stimulus_position)):
                     new_val=y_stimulus_position[i]
                     y_min=min(y_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in y position list in position " + str(i))
+                        msg.setText("Position value value must be within 0-1700 range.<br>Found problem in y position list in position " + str(i))
                         msg.exec()
                         return
-                z_min=4800
+                z_min=1700
                 for i in range(len(z_stimulus_position)):
                     new_val=z_stimulus_position[i]
                     z_min=min(z_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Position value value must be within 0-4800 range.<br>Found problem in z position list in position " + str(i))
+                        msg.setText("Position value value must be within 0-1700 range.<br>Found problem in z position list in position " + str(i))
                         msg.exec()
                         return
 

@@ -147,17 +147,17 @@ try:
             row += 1
 
             ##### correct stimulus variables #####
-            self.correct_stimulus_x_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus X coordinate:",spin_min=1,spin_max=4800,step=1,varname="correct_stimulus_x_value")
+            self.correct_stimulus_x_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus X coordinate:",spin_min=1,spin_max=1700,step=1,varname="correct_stimulus_x_value")
             self.correct_stimulus_x_value.add_to_grid(controls_layout,row)
             self.correct_stimulus_x_value.setBoard(board)
             row+=1
 
-            self.correct_stimulus_y_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus Y coordinate:",spin_min=1,spin_max=4800,step=1,varname="correct_stimulus_y_value")
+            self.correct_stimulus_y_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus Y coordinate:",spin_min=1,spin_max=1700,step=1,varname="correct_stimulus_y_value")
             self.correct_stimulus_y_value.add_to_grid(controls_layout,row)
             self.correct_stimulus_y_value.setBoard(board)
             row+=1
 
-            self.correct_stimulus_z_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus Z coordinate:",spin_min=1,spin_max=4800,step=1,varname="correct_stimulus_z_value")
+            self.correct_stimulus_z_value=Spin_var(init_var_dict=init_vars,label="Correct stimulus Z coordinate:",spin_min=1,spin_max=1700,step=1,varname="correct_stimulus_z_value")
             self.correct_stimulus_z_value.add_to_grid(controls_layout,row)
             self.correct_stimulus_z_value.setBoard(board)
             row+=1
@@ -218,17 +218,17 @@ try:
             self.probability_of_catch_trial.setBoard(board)
             row+=1
 
-            self.catch_trial_x_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus X coordinate:",spin_min=1,spin_max=4800,step=1,varname="catch_trial_x_position")
+            self.catch_trial_x_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus X coordinate:",spin_min=1,spin_max=1700,step=1,varname="catch_trial_x_position")
             self.catch_trial_x_position.add_to_grid(controls_layout,row)
             self.catch_trial_x_position.setBoard(board)
             row+=1
 
-            self.catch_trial_y_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus Y coordinate:",spin_min=1,spin_max=4800,step=1,varname="catch_trial_y_position")
+            self.catch_trial_y_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus Y coordinate:",spin_min=1,spin_max=1700,step=1,varname="catch_trial_y_position")
             self.catch_trial_y_position.add_to_grid(controls_layout,row)
             self.catch_trial_y_position.setBoard(board)
             row+=1
 
-            self.catch_trial_z_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus Z coordinate:",spin_min=1,spin_max=4800,step=1,varname="catch_trial_z_position")
+            self.catch_trial_z_position=Spin_var(init_var_dict=init_vars,label="catch trial stimulus Z coordinate:",spin_min=1,spin_max=1700,step=1,varname="catch_trial_z_position")
             self.catch_trial_z_position.add_to_grid(controls_layout,row)
             self.catch_trial_z_position.setBoard(board)
             row+=1
@@ -317,20 +317,20 @@ try:
                 
 
 
-                #validate bounds are withing legal values (0-4800)
-                if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>4800 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
+                #validate bounds are withing legal values (0-1700)
+                if stimulus_x_outer_bounds[0]<0 or stimulus_x_outer_bounds[1]>1700 or type(stimulus_x_outer_bounds[0])!=int or type(stimulus_x_outer_bounds[1])!=int or stimulus_x_outer_bounds[1]<stimulus_x_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
-                if stimulus_y_outer_bounds[0]<0 or stimulus_y_outer_bounds[1]>4800 or type(stimulus_y_outer_bounds[0])!=int or type(stimulus_y_outer_bounds[1])!=int or stimulus_y_outer_bounds[1]<stimulus_y_outer_bounds[0]:
+                if stimulus_y_outer_bounds[0]<0 or stimulus_y_outer_bounds[1]>1700 or type(stimulus_y_outer_bounds[0])!=int or type(stimulus_y_outer_bounds[1])!=int or stimulus_y_outer_bounds[1]<stimulus_y_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
-                if stimulus_z_outer_bounds[0]<0 or stimulus_z_outer_bounds[1]>4800 or type(stimulus_z_outer_bounds[0])!=int or type(stimulus_z_outer_bounds[1])!=int or stimulus_z_outer_bounds[1]<stimulus_z_outer_bounds[0]:
+                if stimulus_z_outer_bounds[0]<0 or stimulus_z_outer_bounds[1]>1700 or type(stimulus_z_outer_bounds[0])!=int or type(stimulus_z_outer_bounds[1])!=int or stimulus_z_outer_bounds[1]<stimulus_z_outer_bounds[0]:
                     msg = QtWidgets.QMessageBox()
-                    msg.setText("Stimulus outer bounds have to be integers withing range 0-4800.<br>Start position must be less than or equal to end position")
+                    msg.setText("Stimulus outer bounds have to be integers withing range 0-1700.<br>Start position must be less than or equal to end position")
                     msg.exec()
                     return
                 
@@ -340,27 +340,27 @@ try:
                 for i in range(len(x_stimulus_offset)):
                     new_val=x_stimulus_offset[i]+correct_stimulus_x_value
                     x_min=min(x_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Offset value plus correct position value must be within 0-4800 range.<br>Found problem in x offset list in position " + str(i))
+                        msg.setText("Offset value plus correct position value must be within 0-1700 range.<br>Found problem in x offset list in position " + str(i))
                         msg.exec()
                         return
                 y_min=correct_stimulus_y_value
                 for i in range(len(y_stimulus_offset)):
                     new_val=y_stimulus_offset[i]+correct_stimulus_y_value
                     y_min=min(y_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Offset value plus correct position value must be within 0-4800 range.<br>Found problem in y offset list in position " + str(i))
+                        msg.setText("Offset value plus correct position value must be within 0-1700 range.<br>Found problem in y offset list in position " + str(i))
                         msg.exec()
                         return
                 z_min=correct_stimulus_z_value
                 for i in range(len(z_stimulus_offset)):
                     new_val=z_stimulus_offset[i]+correct_stimulus_z_value
                     z_min=min(z_min,new_val)
-                    if new_val<0 or new_val>4800:
+                    if new_val<0 or new_val>1700:
                         msg = QtWidgets.QMessageBox()
-                        msg.setText("Offset value plus correct position value must be within 0-4800 range.<br>Found problem in z offset list in position " + str(i))
+                        msg.setText("Offset value plus correct position value must be within 0-1700 range.<br>Found problem in z offset list in position " + str(i))
                         msg.exec()
                         return
 

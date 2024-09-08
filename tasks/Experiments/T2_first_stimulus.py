@@ -61,8 +61,8 @@ v.position_CDF_list___=[] #Cumulative distribution function for the probabilitie
 
 #limits to move out of whisking area
 v.stimulus_x_outer_bounds=(800,1200)
-v.stimulus_y_outer_bounds=(2000,3000)
-v.stimulus_z_outer_bounds=(3000,3500)
+v.stimulus_y_outer_bounds=(500,1000)
+v.stimulus_z_outer_bounds=(500,800)
 
 #private variables
 v.finished_startup___ = False
@@ -115,28 +115,28 @@ def move_motor_into_position(motor, position):
     move=0
     if motor=='x':
         move = position-v.motor_x_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_x.backward(v.stimulus_motor_speed,move)
             v.motor_x_pos___+=move
-        elif move>-4800 and move<0:
+        elif move>-1700 and move<0:
             motor_x.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_x_pos___+=move
 
     elif motor=='y':
         move = position-v.motor_y_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_y.backward(v.stimulus_motor_speed,move)
             v.motor_y_pos___+=move
-        elif move>=-4800 and move<0:
+        elif move>=-1700 and move<0:
             motor_y.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_y_pos___+=move
 
     elif motor=='z':
         move = position-v.motor_z_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_z.backward(v.stimulus_motor_speed,move)
             v.motor_z_pos___+=move
-        elif move>=-4800 and move<0:
+        elif move>=-1700 and move<0:
             motor_z.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_z_pos___+=move
     return move
