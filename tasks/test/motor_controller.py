@@ -43,28 +43,28 @@ def move_motor_into_position(motor, position):
     move=0
     if motor=='x':
         move = position-v.motor_x_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_x.backward(v.motor_speed,move)
             v.motor_x_pos___+=move
-        elif move>-4800 and move<0:
+        elif move>-1700 and move<0:
             motor_x.forward(v.motor_speed,move*(-1))
             v.motor_x_pos___+=move
 
     elif motor=='y':
         move = position-v.motor_y_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_y.backward(v.motor_speed,move)
             v.motor_y_pos___+=move
-        elif move>=-4800 and move<0:
+        elif move>=-1700 and move<0:
             motor_y.forward(v.motor_speed,move*(-1))
             v.motor_y_pos___+=move
 
     elif motor=='z':
         move = position-v.motor_z_pos___
-        if move>0 and move<=4800:
+        if move>0 and move<=1700:
             motor_z.backward(v.motor_speed,move)
             v.motor_z_pos___+=move
-        elif move>=-4800 and move<0:
+        elif move>=-1700 and move<0:
             motor_z.forward(v.motor_speed,move*(-1))
             v.motor_z_pos___+=move
     return move
@@ -92,9 +92,9 @@ def main(event):
         print("motor in position")
 
     if event =='return home':
-        motor_z.forward(1500,4800)
-        motor_y.forward(1500,4800)
-        motor_x.forward(1500,4800)
+        motor_z.forward(1500,1700)
+        motor_y.forward(1500,1700)
+        motor_x.forward(1500,1700)
         v.motor_z_position=0
         v.motor_y_position=0
         v.motor_x_position=0
