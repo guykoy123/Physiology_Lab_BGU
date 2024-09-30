@@ -1,11 +1,11 @@
 
 Electrophysiology lab at BGU using mice to study the brains ability and process of decision making based on mechanoreceptor.
 
-In the experiment mouse will be shown stimuli in different positions preset before the start. will receive water for licking at correct one, punishment for incorrect one.
+In the experiment mouse will be shown stimuli in different positions preset before the start. will receive water for licking at correct one, punishment (longer inter trial interval) for incorrect one.
 While their brain is being recorded and they are filmed with high speed camera.
 using the pyControl system for running and managing the experiments
 
-
+Trello board: https://trello.com/b/wPBS0Jod/pycontrol
 
 
 
