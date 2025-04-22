@@ -4,7 +4,7 @@
 !data/
 !.gitignore
 !readme.txt
-tasks/testing/shit.py
+
 !controls_dialogs/
 controls_dialogs/__pycache__
 
