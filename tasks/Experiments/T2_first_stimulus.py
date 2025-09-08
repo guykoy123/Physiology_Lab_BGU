@@ -44,9 +44,9 @@ v.wheel_spin_duration=4000 #amount of time mouse wheel will spin, in validation 
 v.delay_for_water_after_trial_start=2000 #time to wait before giving water after wheel stops
 v.wheel_delay_offset = 10 #percentage of offset from original value to randomize values
 v.pump_duration=75*ms #pump duration for button press
-v.stimulus_time_window = 3000*ms #how long the stimulus stays in place
+v.stimulus_time_window = 5000*ms #how long the stimulus stays in place
 v.stimulus_motor_speed = 1500
-v.trial_duration=8000
+v.trial_duration=11000
 v.stimulus_delay_from_start_of_trial=300 #the amount of time to wait before stimulus moves into whisking position from trial start
 v.inter_trial_interval=5000 
 
@@ -64,6 +64,14 @@ v.stimulus_x_outer_bounds=(800,1200)
 v.stimulus_y_outer_bounds=(500,1000)
 v.stimulus_z_outer_bounds=(500,800)
 
+#variables for stimulus position oscillation
+# v.oscillation_axis ='x' 
+v.num_of_oscillations = 3
+v.amplitude_of_oscillations = 200
+v.oscillating___=False
+v.oscillation_counter___=0
+v.last_direction___=0 #0 up, 1 down
+v.original_pos___=0
 #private variables
 v.finished_startup___ = False
 v.pump_bool___=False
@@ -86,7 +94,7 @@ events = ['speaker_off','start_walking','pump_on','pump_off',
           'button_press','pulse','move_in','move_out','moved_in'
           ,'lick_1','lick_1_off',
           'start_trial_event','end_trial','end_experiment',
-          'stop_wheel','stop_trial_pulse']
+          'stop_wheel','stop_trial_pulse','oscillate_up','oscillate_down']
     
     
 def return_home():
@@ -139,7 +147,7 @@ def move_motor_into_position(motor, position):
         elif move>=-1700 and move<0:
             motor_z.forward(v.stimulus_motor_speed,move*(-1))
             v.motor_z_pos___+=move
-    return move
+    return abs(move)
 
 def get_rand_offset():
     return randint(0,v.wheel_delay_offset)/100 + 1
@@ -193,7 +201,7 @@ def main_loop(event):
         for i in range(len(v.position_CDF_list___)):
             
             if v.position_CDF_list___[i]>=random_value:
-                x_position = v.z_stimulus_position[i]
+                x_position = v.x_stimulus_position[i]
                 y_position = v.y_stimulus_position[i]
                 z_position = v.z_stimulus_position[i]
                 break
@@ -206,8 +214,8 @@ def main_loop(event):
         moving_time = max(moving_time,move_motor_into_position('x',x_position))
         v.motors_ready___=False
 
-        set_timer("moved_in",moving_time/v.stimulus_motor_speed*second)
-        
+        set_timer("moved_in",moving_time/v.stimulus_motor_speed*second*1.5)
+        set_timer("oscillate_up",moving_time/v.stimulus_motor_speed*second*1.2)
     elif event =="move_out":
         if v.motors_stationary___:
             v.motors_stationary___=False
@@ -247,12 +255,45 @@ def all_states(event):
         v.finished_startup___=True
 
     elif event=='moved_in': #runs when stimulus moved into place
-        v.motors_stationary___=True
-        speaker.sine(v.water_beep_frequency)
-        set_timer('speaker_off',500)
-        set_timer('move_out',v.stimulus_time_window)
-        goto_state('main_loop')
+            v.motors_stationary___=True
+            speaker.sine(v.water_beep_frequency)
+            set_timer('speaker_off',500)
+            set_timer('move_out',v.stimulus_time_window)
+            goto_state('main_loop')
 
+
+
+
+    if event =="oscillate_up":
+        if v.oscillation_counter___==0:
+            v.oscillating___=True
+            v.original_pos___=v.motor_x_pos___
+            v.stimulus_motor_speed=1000
+            move_time = move_motor_into_position('x',min(v.original_pos___+v.amplitude_of_oscillations//2,1700))/v.stimulus_motor_speed*second*2
+            v.last_direction___=0
+            v.oscillation_counter___+=1
+            set_timer('oscillate_down',move_time)
+        elif v.oscillation_counter___ <v.num_of_oscillations:
+
+            if v.last_direction___==1:
+
+                move_time = move_motor_into_position('x',min(v.original_pos___+v.amplitude_of_oscillations,1700))/v.stimulus_motor_speed*second*2
+                v.last_direction___=0
+                v.oscillation_counter___+=1
+                set_timer('oscillate_down',move_time)
+
+        elif v.oscillation_counter___==v.num_of_oscillations:
+            v.oscillation_counter___=0
+            v.stimulus_motor_speed=1500
+            move_time = move_motor_into_position('x',v.original_pos___)
+            v.oscillating___=False
+
+    elif event=='oscillate_down':
+         if v.oscillation_counter___ <=v.num_of_oscillations:
+            if v.last_direction___ ==0:
+                move_time = move_motor_into_position('x',max(v.original_pos___-v.amplitude_of_oscillations,0))/v.stimulus_motor_speed*second*2
+                v.last_direction___=1
+            set_timer('oscillate_up',move_time)
     if event == 'stop_wheel':
         wheel.off()
 

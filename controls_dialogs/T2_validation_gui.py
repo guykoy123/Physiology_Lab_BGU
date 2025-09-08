@@ -14,21 +14,47 @@ try:
     class Custom_controls_dialog(QtWidgets.QDialog):
         # Dialog for setting and getting task variables.
         def __init__(self, parent, board):
+            # super(QtWidgets.QDialog, self).__init__(parent)
+            # self.setWindowTitle(TITLE)
+            # self.layout = QtWidgets.QVBoxLayout(self)
+            # self.controls_grid = Controls_grid(self, board)
+            # self.layout.addWidget(self.controls_grid)
+            # self.layout.setContentsMargins(0, 0, 0, 0)
+            # self.setLayout(self.layout)
             super(QtWidgets.QDialog, self).__init__(parent)
             self.setWindowTitle(TITLE)
+
+            # Main layout for the dialog
             self.layout = QtWidgets.QVBoxLayout(self)
+
+            # Create a scroll area
+            scroll_area = QtWidgets.QScrollArea()
+            scroll_area.setWidgetResizable(True)  # Content resizes dynamically
+
+            # Wrap your Controls_grid inside the scroll area
             self.controls_grid = Controls_grid(self, board)
-            self.layout.addWidget(self.controls_grid)
+            scroll_area.setWidget(self.controls_grid)
+
+            # Add scroll area to the main layout
+            self.layout.addWidget(scroll_area)
             self.layout.setContentsMargins(0, 0, 0, 0)
             self.setLayout(self.layout)
 
 
     class Controls_grid(QtWidgets.QWidget):
         def __init__(self, parent, board):
+            # super(QtWidgets.QWidget, self).__init__(parent)
+            # variables = board.sm_info.variables
+            # self.grid_layout = QtWidgets.QGridLayout()
+            # initial_variables_dict = {v_name: v_value_str for (v_name, v_value_str) in sorted(variables.items())}
+            # self.controls_gui = Controls_gui(self, self.grid_layout, board, initial_variables_dict)
+            # self.setLayout(self.grid_layout)
             super(QtWidgets.QWidget, self).__init__(parent)
             variables = board.sm_info.variables
             self.grid_layout = QtWidgets.QGridLayout()
-            initial_variables_dict = {v_name: v_value_str for (v_name, v_value_str) in sorted(variables.items())}
+            initial_variables_dict = {
+                v_name: v_value_str for (v_name, v_value_str) in sorted(variables.items())
+            }
             self.controls_gui = Controls_gui(self, self.grid_layout, board, initial_variables_dict)
             self.setLayout(self.grid_layout)
 
@@ -147,6 +173,16 @@ try:
             self.z_stimulus_position.add_to_grid(controls_layout, row)
             self.z_stimulus_position.setBoard(board)
             row += 1
+
+            self.num_of_oscillations=Spin_var(init_var_dict=init_vars,label="Number of oscillations:",spin_min=0,spin_max=20,step=1,varname="num_of_oscillations")
+            self.num_of_oscillations.add_to_grid(controls_layout,row)
+            self.num_of_oscillations.setBoard(board)
+            row+=1
+
+            self.amplitude_of_oscillations=Spin_var(init_var_dict=init_vars,label="Amplitude of oscillations:",spin_min=0,spin_max=700,step=1,varname="amplitude_of_oscillations")
+            self.amplitude_of_oscillations.add_to_grid(controls_layout,row)
+            self.amplitude_of_oscillations.setBoard(board)
+            row+=1
 
             ##### Probability list #####
             controls_layout.addWidget(QtWidgets.QLabel("<br>The probability list gives probabilities of a certain position being used in a trial.<br>(in order of position list)<br>Total probabilities have to sum up to 1.<br>Format: [float,float,...]"), row, 0, 1, 4)
@@ -335,6 +371,9 @@ try:
                 wheel_spin_duration = eval(self.wheel_spin_duration.spn.text())
                 stimulus_delay_from_start = eval(self.stimulus_delay_from_start.spn.text())
                 stimulus_time_window = eval(self.stimulus_time_window.spn.text())
+                num_of_oscillations =eval(self.num_of_oscillations)
+                amplitude_of_oscillations=eval(self.amplitude_of_oscillations)
+
 
                 #validate the wheel spinning plus delay fit in duration
                 if delay_to_start_wheel+wheel_spin_duration>trial_duration:
@@ -349,9 +388,9 @@ try:
                     msg.exec()
                     return
                 
-                if stimulus_delay_from_start+stimulus_time_window+3000 > trial_duration:
+                if stimulus_delay_from_start+stimulus_time_window+3000 +num_of_oscillations*2*amplitude_of_oscillations//1000 > trial_duration:
                     msg=QtWidgets.QMessageBox()
-                    msg.setText("stimulus delay + stimulus time window + 3sec must be <= of trial duration")
+                    msg.setText("stimulus delay + stimulus time window + 3sec must be + time for oscillations (num of oscillation * 2 * amplitude_of_oscillation /1000)<= of trial duration")
                     msg.exec()
                     return
                 
@@ -362,6 +401,8 @@ try:
                 self.pump_duration.set()
                 self.stimulus_delay_from_start.set()
                 self.stimulus_time_window.set()
+                self.num_of_oscillations.set()
+                self.amplitude_of_oscillations.set()
 
             def probability_validator():
                 """
@@ -413,7 +454,10 @@ try:
             self.stimulus_time_window.set_btn.clicked.disconnect()  # disconnect the default clicked event
             self.stimulus_time_window.set_btn.clicked.connect(trial_timing_validator)
 
-
+            self.num_of_oscillations.set_btn.clicked.disconnect()
+            self.num_of_oscillations.set_btn.clicked.connect(trial_timing_validator)
+            self.amplitude_of_oscillations.set_btn.clicked.disconnect()
+            self.amplitude_of_oscillations.set_btn.clicked.connect(trial_timing_validator)
             ##### sound variables #####
             self.start_beep_frequency.set_btn.clicked.disconnect()
             self.start_beep_frequency.set_btn.clicked.connect(sound_validator)
